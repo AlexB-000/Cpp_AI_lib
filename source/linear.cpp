@@ -1,4 +1,4 @@
-#include "linear.hpp"
+#include "../include/deep_learn/linear.hpp"
 
 Tensor<double> Linear::forward(const Tensor<double>& input){
     prevInput = input;

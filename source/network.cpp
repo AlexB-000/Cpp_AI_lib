@@ -1,4 +1,4 @@
-#include "network.hpp"
+#include "../include/deep_learn/network.hpp"
 
 void Network::stackLayer(const Module& layer){
 	std::shared_ptr<Module> layerPtr = std::make_shared<Module>(layer);
