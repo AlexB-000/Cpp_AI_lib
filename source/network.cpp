@@ -1,26 +1,26 @@
 #include "../include/deep_learn/network.hpp"
 
-void Network::stackLayer(const Module& layer){
-	std::shared_ptr<Module> layerPtr = std::make_shared<Module>(layer);
-	modules.push_back(layerPtr);
-	parameters.push_back(layerPtr->parameters());
+void Network::stackLayer(const std::shared_ptr<Module> layer){
+	modules.push_back(layer);
+	std::vector< Tensor* > layerParams = layer->get_parameters();
+	parameters.insert(parameters.end(), layerParams.begin(), layerParams.end());
 }
 
-Tensor<double> Network::forward(const Tensor<double>& input){
-	Tensor<double> output = input;
+Tensor Network::forward(const Tensor& input){
+	Tensor output = input;
 	for(auto& layer : modules){
 		output = layer->forward(output);
 	}
 	return output;
 }
 
-std::vector< Tensor<double> > Network::backward(const Tensor<double>& prevDeriv){
+std::vector< Tensor > Network::backward(const Tensor& prevDeriv){
 
-	Tensor<double> deriv = prevDeriv;
+	Tensor deriv = prevDeriv;
 
-	std::vector< Tensor<double> > allDerivs;
+	std::vector< Tensor > allDerivs;
 	for(int i = modules.size() - 1; i >= 0; i--){
-		std::vector< Tensor<double> > layerDerivs = modules[i]->backward(deriv);
+		std::vector< Tensor > layerDerivs = modules[i]->backward(deriv);
 		deriv = layerDerivs.back();
 		layerDerivs.pop_back();
 		allDerivs.insert(allDerivs.begin(), layerDerivs.begin(), layerDerivs.end());

@@ -1,0 +1,1 @@
+g++ -c ../source/network.cpp -o ../bin/network.o

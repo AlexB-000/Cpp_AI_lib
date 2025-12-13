@@ -11,19 +11,19 @@ Tensor::Tensor(const std::vector<unsigned int>& shape, const float value)
             length *= shape[i];
         }
     }
-    data = std::make_shared<std::vector<_T>>(length, value);
+    data = std::make_shared<std::vector<float>>(length, value);
 }
 
 // constructor
 
 Tensor::Tensor(const std::vector<unsigned int> inShape, const std::vector<unsigned int> inStrides,
-    const std::shared_ptr<std::vector<_T>>& inData, const unsigned int inOffset)
+    const std::shared_ptr<std::vector<float>>& inData, const unsigned int inOffset)
     : shape(inShape), strides(inStrides), data(inData), offset(inOffset) {}
 
 // copy constructor
 
 Tensor::Tensor(const Tensor& other) :
-shape(other.shape), strides(other.strides), offset(other.offset), data(std::make_shared<std::vector<_T>> (*other.data)) {}
+shape(other.shape), strides(other.strides), offset(other.offset), data(std::make_shared<std::vector<float>> (*other.data)) {}
 
 // assignment operator
 
@@ -32,7 +32,7 @@ Tensor& Tensor::operator=(const Tensor& other) {
         shape = other.shape;
         strides = other.strides;
         offset = other.offset;
-        data = std::make_shared<std::vector<_T>> (*other.data);
+        data = std::make_shared<std::vector<float>> (*other.data);
         return (*this);
     }
     if (dim() == 0){
@@ -302,7 +302,7 @@ Tensor Tensor::collapse(unsigned int axis) const{
     newShape.erase(newShape.begin() + axis);
     auto newStrides = strides;
     newStrides.erase(newStrides.begin() + axis);
-    Tensor result {newShape, newStrides, std::make_shared<std::vector<_T>>(*data), offset};
+    Tensor result {newShape, newStrides, std::make_shared<std::vector<float>>(*data), offset};
 
     if (axis == 0){
         for (uint32_t i=1; i < shape[0]; i++){
@@ -316,9 +316,9 @@ Tensor Tensor::collapse(unsigned int axis) const{
     return result;
 }
 
-//MARK: Friend
+//MARK: Friend functions
 
-Tensor cat(const std::vector< Tensor >& tensors, unsigned int axis=0){
+Tensor cat(const std::vector< Tensor >& tensors, unsigned int axis){
     if (axis >= tensors[0].dim()){
         throw std::out_of_range("Axis out of range for cat");
     }
@@ -361,8 +361,7 @@ Tensor cat(const std::vector< Tensor >& tensors, unsigned int axis=0){
     return result;
 }
 
-
-Tensor stack(const std::vector< Tensor >& tensors, unsigned int axis=0) {
+Tensor stack(const std::vector< Tensor >& tensors, unsigned int axis) {
     if (axis > tensors[0].dim()){
         throw std::out_of_range("Axis out of range for stack");
     }

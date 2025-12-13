@@ -1,5 +1,5 @@
 #pragma once
-#include "../../Tensors/include/tensorMath.hpp"
+#include "../../Tensor/include/tensorMath.hpp"
 #include "module.hpp"
 
 class Network: public Module{
@@ -7,13 +7,16 @@ public:
     std::vector<std::shared_ptr<Module>> modules;
     unsigned int inputSize;
     unsigned int outputSize;
-    //std::vector< Tensor<double> > layerInputs;
-    std::vector<std::vector< Tensor<double> * >> parameters;
+    //std::vector< Tensor > layerInputs;
+    std::vector< Tensor * > parameters;
+
+    ~Network() = default;
 	
 	Network(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
 	
-	void stackLayer(const Module& layer);
+	void stackLayer(const std::shared_ptr<Module> layer);
 
-    Tensor<double> forward(const Tensor<double>& input) override;
-    std::vector< Tensor<double> > backward(const Tensor<double>& prevDeriv) override;
+	std::vector< Tensor* > get_parameters() {return parameters;}
+    Tensor forward(const Tensor& input) override;
+    std::vector< Tensor > backward(const Tensor& prevDeriv) override;
 };

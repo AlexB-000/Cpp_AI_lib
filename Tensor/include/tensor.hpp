@@ -11,12 +11,12 @@ class Tensor {
 public:
     Tensor(const std::vector<unsigned int>& shape, const float value=0);
     Tensor(const float value=0) : Tensor(std::vector<unsigned int>{}, value) {};
-    Tensor(const std::vector<unsigned int>& shape, const std::vector<_T>& initData) :
+    Tensor(const std::vector<unsigned int>& shape, const std::vector<float>& initData) :
         Tensor(shape) {
-            data = std::make_shared<std::vector<_T>>(initData);
+            data = std::make_shared<std::vector<float>>(initData);
     }
     Tensor(const std::vector<unsigned int> inShape, const std::vector<unsigned int> inStrides,
-    const std::shared_ptr<std::vector<_T>>& inData, const unsigned int inOffset);
+    const std::shared_ptr<std::vector<float>>& inData, const unsigned int inOffset);
     
     Tensor(const Tensor& other);
     Tensor& operator=(const Tensor& other);
@@ -47,10 +47,15 @@ public:
     Tensor operator*(const Tensor& other) const;
     Tensor operator/(const Tensor& other) const;
 
-    std::shared_ptr<std::vector<_T>> data;
+    std::shared_ptr<std::vector<float>> data;
 
     unsigned int offset = 0; // Offset for views/slices
 
     std::vector <unsigned int> strides;
     std::vector <unsigned int> shape;
 };
+
+// MARK: friend functions
+
+Tensor cat(const std::vector< Tensor >& tensors, unsigned int axis=0);
+Tensor stack(const std::vector< Tensor >& tensors, unsigned int axis=0);

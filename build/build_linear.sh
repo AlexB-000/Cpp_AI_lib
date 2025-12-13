@@ -1,0 +1,1 @@
+g++ -c ../source/linear.cpp -o ../bin/linear.o

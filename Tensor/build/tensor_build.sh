@@ -1,0 +1,1 @@
+g++ -c ../source/tensor.cpp -o ../bin/tensor.o

@@ -69,26 +69,26 @@ int main(){
     t5.T().show();
 
 
-    Tensor<int> ta = Tensor<int>({2, 3}, {0, 1, 2, 10, 11, 12});
-    Tensor<int> tb = Tensor<int>({3, 2}, {1, 2, 11, 12, 21, 22});
+    Tensor ta = Tensor({2, 3}, {0, 1, 2, 10, 11, 12});
+    Tensor tb = Tensor({3, 2}, {1, 2, 11, 12, 21, 22});
     ta.show(); tb.show();
 
     matmul(ta, tb).show();
 
-    ta = Tensor<int>({3}, {0, 1, 2});
-    tb = Tensor<int>({3}, {0, 1, 2});
-    ta.show(); tb.show();
-    
-    matmul(ta, tb).show();
-
-    ta = Tensor<int>({2, 3}, {0, 1, 2, 10, 11, 12});
-    tb = Tensor<int>({3}, {0, 1, 2});
+    ta = Tensor({3}, {0, 1, 2});
+    tb = Tensor({3}, {0, 1, 2});
     ta.show(); tb.show();
     
     matmul(ta, tb).show();
 
-    ta = Tensor<int>({3}, {0, 1, 2});
-    tb = Tensor<int>({3, 2}, {0, 1, 10, 11, 20, 21});
+    ta = Tensor({2, 3}, {0, 1, 2, 10, 11, 12});
+    tb = Tensor({3}, {0, 1, 2});
+    ta.show(); tb.show();
+    
+    matmul(ta, tb).show();
+
+    ta = Tensor({3}, {0, 1, 2});
+    tb = Tensor({3, 2}, {0, 1, 10, 11, 20, 21});
     ta.show(); tb.show();
     
     matmul(ta, tb).show();

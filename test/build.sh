@@ -1,0 +1,1 @@
+g++ test.cpp ../bin/linear.o ../bin/network.o ../Tensor/bin/tensor.o ../Tensor/bin/tensorMath.o -o test
