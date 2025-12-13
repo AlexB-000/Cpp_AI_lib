@@ -1,4 +1,4 @@
-#include "tensorMath.hpp"
+#include "../include/tensorMath.hpp"
 #include <iostream>
 
 int main(){

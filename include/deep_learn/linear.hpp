@@ -1,5 +1,5 @@
 #pragma once
-#include "../Tensors/tensorMath.hpp"
+#include "../../Tensors/include/tensorMath.hpp"
 #include "module.hpp"
 
 class Linear: public Module{
