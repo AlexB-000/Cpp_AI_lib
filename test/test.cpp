@@ -11,11 +11,15 @@ int main(){
     net.stackLayer(layer1);
     net.stackLayer(layer2);
 
+    std::cout << "Network created with 2 layers.\n";
     Tensor input({3}, 1.0);
+    std::cout << "Input:\n";
+    input.show();
     Tensor output = net.forward(input);
     std::cout << "Output:\n";
     output.show();
 
+    std::cout << "Performing backward pass.\n";
     Tensor lossDeriv({2}, 1.0);
     std::vector<Tensor> grads = net.backward(lossDeriv);
     std::cout << "Gradients:\n";

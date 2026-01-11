@@ -14,7 +14,7 @@ public:
 
     Linear(int inInputSize, int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {
         biases = Tensor(outputSize);
-        weights = Tensor({static_cast<unsigned int>(inputSize), static_cast<unsigned int>(outputSize)});
+        weights = Tensor({static_cast<unsigned int>(outputSize), static_cast<unsigned int>(inputSize)});
         prevInput = Tensor(inputSize);
     }
 	std::vector< Tensor* > get_parameters() override;
