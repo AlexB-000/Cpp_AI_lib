@@ -10,7 +10,7 @@ public:
 	float compute(const Tensor& predicted, const Tensor& target) override {
         float loss = 0.0f;
         for (size_t i = 0; i < predicted.shape[0]; ++i) {
-            float diff = predicted(i) - target(i);
+            float diff = predicted[i] - target[i];
             loss += diff * diff;
             gradient[i] = 2.0f * diff;
         }

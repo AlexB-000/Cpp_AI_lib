@@ -26,7 +26,7 @@ int main(){
     }
 
 
-    Tensor input({3}, 1.0);
+    Tensor input({3}, { 1.0, -2.0, 3.0 });
     std::cout << "Input:\n";
     input.show();
     Tensor output = net.forward(input);

@@ -11,7 +11,7 @@ std::vector<Tensor> Linear::backward(const Tensor& prevDeriv){
     Tensor d_weights {std::vector<unsigned int>{static_cast<unsigned int>(outputSize), static_cast<unsigned int>(inputSize)}, 0};
     for (unsigned int i=0; i<static_cast<unsigned int>(outputSize); i++){
         for (unsigned int j=0; j<static_cast<unsigned int>(inputSize); j++){
-            d_weights[i][j] = prevDeriv[i] * prevInput[j];
+            d_weights[{i, j}] = prevDeriv[i] * prevInput[j];
         }
     }
     return {d_weights, d_biases, deriv};

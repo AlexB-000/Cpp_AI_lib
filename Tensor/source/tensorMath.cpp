@@ -11,9 +11,9 @@ Tensor matmul(const Tensor& t1, const Tensor& t2){
         Tensor result {std::vector{t1.shape[0], t1.shape[0]}, 0};
         for (unsigned int i = 0; i<t1.shape[0]; i++){
             for (unsigned int j = 0; j<t1.shape[0]; j++){
-                result[i][j] = 0;
+                result[{i, j}] = 0;
                 for (unsigned int k = 0; k<t1.shape[1]; k++){
-                    result[i][j] = result[i][j] + t1[i][k] * t2[k][j];
+                    result[{i, j}] = result[{i, j}] + t1[{i, k}] * t2[{k, j}];
                 }
             }
         }
@@ -34,7 +34,7 @@ Tensor matmul(const Tensor& t1, const Tensor& t2){
     Tensor t2T = t2.T();
     
     Tensor product {t1 * t2T};
-    
+    product.show();
     Tensor result {product.collapse(product.dim()-1)};
 
     return result;

@@ -35,12 +35,18 @@ Tensor& Tensor::operator=(const Tensor& other) {
         data = std::make_shared<std::vector<float>> (*other.data);
         return (*this);
     }
+    if (dim() == 1){
+        for (uint32_t i=0; i < shape[0]; i++){
+            (*this)[i] = other[i];
+        }
+        return (*this);
+    }
     if (dim() == 0){
         data->at(offset) = other.data->at(other.offset);
         return (*this);
     }
     for (uint32_t i=0; i < shape[0]; i++){
-        (*this)[i] = other[i];
+        (*this).subtensor(i) = other.subtensor(i);
     }
     return (*this);
 }
@@ -48,17 +54,22 @@ Tensor& Tensor::operator=(const Tensor& other) {
 // return a deep copy of the tensor
 
 Tensor Tensor::copy() const {
-    Tensor result (shape);
+    Tensor result {shape};
+    if (dim() == 1){
+        for (uint32_t i=0; i < shape[0]; i++){
+            result[i] = (*this)[i];
+        }
+        return result;
+    }
     if (dim() == 0){
         result.data->at(result.offset) = data->at(offset);
         return result;
     }
     for (uint32_t i=0; i < shape[0]; i++){
-        result[i] = (*this)[i].copy();
+        result.subtensor(i) = (*this).subtensor(i).copy();
     }
     return result;
 }
-
 
 void Tensor::show(unsigned int indent) {
     if (shape.empty()) {
@@ -75,7 +86,9 @@ void Tensor::show(unsigned int indent) {
     } else {
         std::cout << "[";
         for (uint32_t i=0; i < shape[0]; i++) {
-            (*this)[i].show(indent + 1);
+            Tensor subtensor = this->subtensor(i);
+
+            subtensor.show(indent + 1);
             
             if (i < shape[0] - 1){
                 std::cout << std::endl;
@@ -104,192 +117,190 @@ Tensor Tensor::T() const {
         for (int i=dim()-1; i >= 0; i--){
             indices[i] = ( step / strides[i] ) % ( shape[i] );
         }
-        auto reversed = indices;
-        std::reverse(reversed.begin(), reversed.end());
+        auto reversed_indices = indices;
+        std::reverse(reversed_indices.begin(), reversed_indices.end());
         
-        result[ reversed ] = (*this)[indices];
+        result[ reversed_indices ] = (*this)[indices];
     }
     return result;
 }
 
 //MARK: - Access
 
-float Tensor::operator()(const std::vector<unsigned int>& indices) const {
+float& Tensor::operator[](const std::vector<unsigned int>& indices) const {
     if (indices.size() != shape.size()) {
         throw std::out_of_range("Number of indices does not match tensor dimensions");
     }
-    unsigned int index = 0;
+    unsigned int index = offset;
     for (unsigned int i = 0; i < indices.size(); ++i) {
         index += indices[i] * strides[i];
     }
     return (*data)[index];
 }
 
-
-float Tensor::operator()(unsigned int index) const {
-    if (shape.size() != 1) {
-        throw std::out_of_range("Tensor is not 1-dimensional : cannot use single index");
+Tensor Tensor::subtensor(unsigned int index) const {
+    if (dim() == 0 || index >= shape[0]) {
+        throw std::out_of_range("Index out of range for subtensor");
     }
-    return (*data)[index * strides[0] + offset];
-}
-
-
-Tensor Tensor::operator[](const std::vector<unsigned int>& indices) const{
-    if (indices.size() > shape.size()) {
-        throw std::out_of_range("Number of indices exceeds tensor dimensions");
-    }
-    unsigned int newOffset = offset;
-    for (unsigned int i = 0; i < indices.size(); ++i) {
-        newOffset += indices[i] * strides[i];
-    }
-    
-    Tensor subtensor (
-        std::vector<unsigned int>(shape.begin() + indices.size(), shape.end()),
-        std::vector<unsigned int>(strides.begin() + indices.size(), strides.end()),
-        data,
-        newOffset
-    );
-
-    return subtensor;
-}
-
-
-Tensor Tensor::operator[](unsigned int index) const{
-    if (shape.empty()) {
-        throw std::out_of_range("Cannot index into a scalar tensor");
-    }
+    auto newShape = shape;
+    newShape.erase(newShape.begin());
+    auto newStrides = strides;
+    newStrides.erase(newStrides.begin());
     unsigned int newOffset = offset + index * strides[0];
-    Tensor subtensor (
-        std::vector<unsigned int>(shape.begin() + 1, shape.end()),
-        std::vector<unsigned int>(strides.begin() + 1, strides.end()),
-        data,
-        newOffset
-    );
-
-    return subtensor;
+    return Tensor(newShape, newStrides, data, newOffset);
 }
 
 //MARK: - Arithmetic
 
 Tensor Tensor::operator+(const Tensor& other) const{
-    Tensor result {*this};
     if (dim() < other.dim()){
+        Tensor result {other};
         for (uint32_t i=0; i < other.shape[0]; i++){
-            Tensor subtensor {other[i]};
-            result[i] = *this + subtensor;
+            Tensor sub_other = other.subtensor(i);
+            result.subtensor(i) = *this + sub_other;
         }
         return result;
     }
+    Tensor result {*this};
     if (dim() > other.dim()){
         for (uint32_t i=0; i < shape[0]; i++){
-            Tensor subtensor {(*this)[i]};
-            result[i] = subtensor + other;
+            Tensor sub_this = (*this).subtensor(i);
+            result.subtensor(i) = sub_this + other;
         }
         return result;
     }
     if (shape != other.shape){
         throw std::invalid_argument("Tensors must have the same shape for elementwise addition");
     }
+    if  (dim() == 1){
+        for (uint32_t i=0; i<shape[0]; i++){
+            result[i] = (*this)[i] + other[i];
+        }
+        return result;
+    }
     if (dim() == 0){
-        result.data->at(result.offset) += other.data->at(other.offset);
+        result.data->at(result.offset) = (*this).data->at(offset) + other.data->at(other.offset);
         return result;
     }
     for (uint32_t i=0; i<shape[0]; i++){
-        result[i] = (*this)[i] + other[i];
+        result.subtensor(i) = (*this).subtensor(i) + other.subtensor(i);
     }
+
     return result;
 }
 
-
+//MARK: (-)
 Tensor Tensor::operator-(const Tensor& other) const{
-    Tensor result {*this};
     if (dim() < other.dim()){
+        Tensor result {other};
         for (uint32_t i=0; i < other.shape[0]; i++){
-            Tensor subtensor {other[i]};
-            result[i] = *this - subtensor;
-        }
-        return result;
-    } else if (dim() > other.dim()){
-        for (uint32_t i=0; i < shape[0]; i++){
-            Tensor subtensor {(*this)[i]};
-            result[i] = subtensor - other;
-        }
-        return result;
-    } else {
-        if (shape != other.shape){
-            throw std::invalid_argument("Tensors must have the same shape for elementwise substraction");
-        }
-        if (dim() == 0){
-            result.data->at(result.offset) -= other.data->at(other.offset);
-            return result;
-        }
-        for (uint32_t i=0; i<shape[0]; i++){
-            result[i] = (*this)[i] - other[i];
-        }
-        return result;
-    }
-}
-
-
-Tensor Tensor::operator*(const Tensor& other) const{
-    if (dim() < other.dim()){
-        Tensor result (other);
-        for (uint32_t i=0; i < other.shape[0]; i++){
-            Tensor subtensor {other[i]};
-            result[i] = *this * subtensor;
+            Tensor sub_other = other.subtensor(i);
+            result.subtensor(i) = *this - sub_other;
         }
         return result;
     }
     Tensor result {*this};
     if (dim() > other.dim()){
         for (uint32_t i=0; i < shape[0]; i++){
-            Tensor subtensor {(*this)[i]};
-            result[i] = subtensor * other;
+            Tensor sub_this = (*this).subtensor(i);
+            result.subtensor(i) = sub_this - other;
         }
         return result;
-    } else {
-        if (shape != other.shape){
-            throw std::invalid_argument("Tensors must have the same shape for elementwise multiplication");
+    }
+    if (shape != other.shape){
+        throw std::invalid_argument("Tensors must have the same shape for elementwise substraction");
+    }
+    if  (dim() == 1){
+        for (uint32_t i=0; i<shape[0]; i++){
+            result[i] = (*this)[i] - other[i];
         }
-        if (dim() == 0){
-            result.data->at(result.offset) *= other.data->at(other.offset);
-            return result;
+        return result;
+    }
+    if (dim() == 0){
+        result.data->at(result.offset) = (*this).data->at(offset) - other.data->at(other.offset);
+        return result;
+    }
+    for (uint32_t i=0; i<shape[0]; i++){
+        result.subtensor(i) = (*this).subtensor(i) - other.subtensor(i);
+    }
+
+    return result;
+}
+
+//MARK: (*)
+Tensor Tensor::operator*(const Tensor& other) const{
+    if (dim() < other.dim()){
+        Tensor result {other};
+        for (uint32_t i=0; i < other.shape[0]; i++){
+            Tensor sub_other = other.subtensor(i);
+            result.subtensor(i) = *this * sub_other;
         }
+        return result;
+    }
+    Tensor result {*this};
+    if (dim() > other.dim()){
+        for (uint32_t i=0; i < shape[0]; i++){
+            Tensor sub_this = (*this).subtensor(i);
+            result.subtensor(i) = sub_this * other;
+        }
+        return result;
+    }
+    if (shape != other.shape){
+        throw std::invalid_argument("Tensors must have the same shape for elementwise multiplication");
+    }
+    if  (dim() == 1){
         for (uint32_t i=0; i<shape[0]; i++){
             result[i] = (*this)[i] * other[i];
         }
         return result;
     }
+    if (dim() == 0){
+        result.data->at(result.offset) = (*this).data->at(offset) * other.data->at(other.offset);
+        return result;
+    }
+    for (uint32_t i=0; i<shape[0]; i++){
+        result.subtensor(i) = (*this).subtensor(i) * other.subtensor(i);
+    }
+
+    return result;
 }
 
-
+//MARK: (/)
 Tensor Tensor::operator/(const Tensor& other) const{
-    Tensor result {*this};
     if (dim() < other.dim()){
+        Tensor result {other};
         for (uint32_t i=0; i < other.shape[0]; i++){
-            Tensor subtensor {other[i]};
-            result[i] = *this / subtensor;
+            Tensor sub_other = other.subtensor(i);
+            result.subtensor(i) = *this / sub_other;
         }
         return result;
-    } else if (dim() > other.dim()){
+    }
+    Tensor result {*this};
+    if (dim() > other.dim()){
         for (uint32_t i=0; i < shape[0]; i++){
-            Tensor subtensor {(*this)[i]};
-            result[i] = subtensor / other;
+            Tensor sub_this = (*this).subtensor(i);
+            result.subtensor(i) = sub_this / other;
         }
         return result;
-    } else {
-        if (shape != other.shape){
-            throw std::invalid_argument("Tensors must have the same shape for elementwise division");
-        }
-        if (dim() == 0){
-            result.data->at(result.offset) /= other.data->at(other.offset);
-            return result;
-        }
+    }
+    if (shape != other.shape){
+        throw std::invalid_argument("Tensors must have the same shape for elementwise division");
+    }
+    if  (dim() == 1){
         for (uint32_t i=0; i<shape[0]; i++){
             result[i] = (*this)[i] / other[i];
         }
         return result;
     }
+    if (dim() == 0){
+        result.data->at(result.offset) = (*this).data->at(offset) / other.data->at(other.offset);
+        return result;
+    }
+    for (uint32_t i=0; i<shape[0]; i++){
+        result.subtensor(i) = (*this).subtensor(i) / other.subtensor(i);
+    }
+
+    return result;
 }
 
 //MARK: - Dim manip
@@ -300,17 +311,15 @@ Tensor Tensor::collapse(unsigned int axis) const{
     }
     auto newShape = shape;
     newShape.erase(newShape.begin() + axis);
-    auto newStrides = strides;
-    newStrides.erase(newStrides.begin() + axis);
-    Tensor result {newShape, newStrides, std::make_shared<std::vector<float>>(*data), offset};
+    Tensor result {newShape, 0};
 
     if (axis == 0){
-        for (uint32_t i=1; i < shape[0]; i++){
-            result = result + (*this)[i];
+        for (uint32_t i=0; i < shape[0]; i++){
+            result = result + (*this).subtensor(i);
         }
     } else {
         for (uint32_t i=0; i < shape[0]; i++){
-            result[i] = (*this)[i].collapse(axis-1);
+            result.subtensor(i) = (*this).subtensor(i).collapse(axis-1);
         }
     }
     return result;
@@ -344,7 +353,7 @@ Tensor cat(const std::vector< Tensor >& tensors, unsigned int axis){
         uint32_t offset = 0;
         for (unsigned int n=0; n < tensors.size(); n++){
             for (uint32_t i=0; i < tensors[n].shape[0]; i++){
-                result[i + offset] = tensors[n][i];
+                result.subtensor(i + offset) = tensors[n].subtensor(i);
             }
             offset += tensors[n].shape[0];
         }
@@ -353,9 +362,9 @@ Tensor cat(const std::vector< Tensor >& tensors, unsigned int axis){
         for (uint32_t i=0; i < tensors[0].shape[0]; i++){
             std::vector< Tensor > subtensors;
             for (unsigned int n=0; n < tensors.size(); n++){
-                subtensors.push_back(tensors[n][i]);
+                subtensors.push_back(tensors[n].subtensor(i));
             }
-            result[i] = cat(subtensors, axis-1);
+            result.subtensor(i) = cat(subtensors, axis-1);
         }
     }
     return result;
@@ -383,15 +392,15 @@ Tensor stack(const std::vector< Tensor >& tensors, unsigned int axis) {
 
     if (axis==0){
         for (unsigned int n=0; n < tensors.size(); n++){
-            result[n] = tensors[n];
+            result.subtensor(n) = tensors[n];
         }
     } else {
         for (uint32_t i=0; i < tensors[0].shape[0]; i++){
             std::vector< Tensor > subtensors;
             for (unsigned int n=0; n < tensors.size(); n++){
-                subtensors.push_back(tensors[n][i]);
+                subtensors.push_back(tensors[n].subtensor(i));
             }
-            result[i] = stack(subtensors, axis-1);
+            result.subtensor(i) = stack(subtensors, axis-1);
         }
     }
     return result;

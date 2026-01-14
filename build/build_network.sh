@@ -1,1 +1,1 @@
-g++ -c ../source/network.cpp -o ../bin/network.o
+g++ -c ../source/deep_learning/network.cpp -o ../bin/network.o

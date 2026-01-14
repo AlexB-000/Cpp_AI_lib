@@ -36,10 +36,10 @@ public:
     
     friend Tensor stack(const std::vector< Tensor >& tensors, unsigned int axis);
 
-    float operator()(const std::vector<unsigned int>& indices) const;
-    float operator()(unsigned int index) const;
-    Tensor operator[](const std::vector<unsigned int>& indices) const;
-    Tensor operator[](unsigned int index) const;
+    float& operator[](const std::vector<unsigned int>& indices) const;
+    float& operator[](unsigned int index) const { return (*this)[std::vector<unsigned int>{index}]; }
+    Tensor subtensor(unsigned int index) const;
+
     Tensor slice(const std::vector<slice>& slices);
 
     Tensor operator+(const Tensor& other) const;

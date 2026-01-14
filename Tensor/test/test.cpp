@@ -53,7 +53,7 @@ int main(){
     t3.show();
     std::cout << "----" << std::endl;
 
-    auto t4 = cat(std::vector{t3, t1[0]});
+    auto t4 = cat(std::vector{t3, t1.subtensor(0)});
     std::cout << "t4 = cat(std::vector{t3, t1[0]}) executed" << std::endl << std::endl;
 
     t4.show();
