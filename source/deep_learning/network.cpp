@@ -1,4 +1,4 @@
-#include "../include/deep_learn/network.hpp"
+#include "../../include/deep_learning/network.hpp"
 
 void Network::stackLayer(const std::shared_ptr<Module> layer){
 	modules.push_back(layer);

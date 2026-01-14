@@ -4,10 +4,10 @@
 class Loss {
 protected:
     int size;
-    std::vector<float> gradient;
+    Tensor gradient;
 public:
     virtual ~Loss() = default;
-    Loss(int inSize) : size(inSize), gradient(inSize, 1.0f) {}
-    virtual float compute(const std::vector<float>& predicted, const std::vector<float>& target) = 0;
-    virtual std::vector<float> get_gradient() {return gradient;}
+    Loss(unsigned int inSize) : size(inSize), gradient({inSize}, 1.0f) {}
+    virtual float compute(const Tensor& predicted, const Tensor& target) = 0;
+    virtual Tensor get_gradient() {return gradient;}
 };

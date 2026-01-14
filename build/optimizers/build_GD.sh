@@ -1,0 +1,1 @@
+g++ -c ../../source/optimizers/GD.cpp -o ../../bin/optimizers/GD.o
