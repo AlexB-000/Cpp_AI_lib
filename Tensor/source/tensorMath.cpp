@@ -34,7 +34,7 @@ Tensor matmul(const Tensor& t1, const Tensor& t2){
     Tensor t2T = t2.T();
     
     Tensor product {t1 * t2T};
-    product.show();
+    
     Tensor result {product.collapse(product.dim()-1)};
 
     return result;

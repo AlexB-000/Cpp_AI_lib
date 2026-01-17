@@ -1,0 +1,74 @@
+#include <iostream>
+#include <random>
+#include "../include/preprocessing/train_test_split.hpp"
+#include "../include/deep_learning/network.hpp"
+#include "../include/deep_learning/linear.hpp"
+#include "../include/optimizers/GD.hpp"
+#include "../include/loss/MSE_Loss.hpp"
+
+std::vector<std::vector<Tensor>> generate_data(uint size){
+    std::vector<Tensor> data;
+    std::vector<Tensor> target;
+
+    //random numbers generator
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0, 10);
+
+    for (uint i=0; i<size; i++){
+        float value = dis(gen)/10.0f;
+        data.push_back(Tensor{{1}, {value}});
+        target.push_back(Tensor{{1}, {value*2 + 1}});
+    }
+    return {data, target};
+}
+
+int main(){
+    Network net(1, 1);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(1, 1);
+    net.stackLayer(layer1);
+
+    std::cout << "## Network created.\n";
+
+    std::vector< Tensor* > params = net.get_parameters();
+    std::cout << "Initial Parameters:\n";
+    for (auto param : params) {
+        param->show();
+    }
+    for (size_t i = 0; i < params.size(); ++i){
+        std::cout << "Parameter " << i << " shape: ";
+        for (auto dim : params[i]->shape)
+            std::cout << dim << " ";
+        std::cout << "\n";
+    }
+
+
+    std::vector<std::vector<Tensor>> data = generate_data(100);
+    std::vector<Tensor> X = data[0];
+    std::vector<Tensor> y = data[1];
+
+    std::vector<std::vector<Tensor>> splited = train_test_split(X, y, 0.1);
+    std::vector<Tensor> X_train = splited[0];
+    std::vector<Tensor> y_train = splited[1];
+    std::vector<Tensor> X_test = splited[2];
+    std::vector<Tensor> y_test = splited[3];
+
+    std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
+
+    MSELoss loss {1};
+    GD optimizer(&net, &loss, 0.01);
+
+    std::cout << "## Starting training...\n";
+
+    optimizer.train(X_train, y_train, 1, 10, 0.5);
+
+    std::cout << "## Training completed.\n";
+
+    params = net.get_parameters();
+    std::cout << "Learned Parameters:\n";
+    for (auto param : params) {
+        param->show();
+    }
+
+    return 0;
+}

@@ -1,0 +1,1 @@
+g++ ../example_double.cpp ../../bin/linear.o ../../bin/optimizers/GD.o ../../bin/network.o ../../Tensor/bin/tensor.o ../../Tensor/bin/tensorMath.o -o ../bin/example_double

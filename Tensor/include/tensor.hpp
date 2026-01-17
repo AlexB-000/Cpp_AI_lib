@@ -23,7 +23,7 @@ public:
 
     Tensor copy() const ;
 
-    void show(unsigned int indent=0);
+    void show(unsigned int indent=0) const;
 
     unsigned int dim() const { return shape.size(); };
 

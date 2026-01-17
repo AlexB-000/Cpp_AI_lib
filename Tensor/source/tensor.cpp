@@ -71,7 +71,7 @@ Tensor Tensor::copy() const {
     return result;
 }
 
-void Tensor::show(unsigned int indent) {
+void Tensor::show(unsigned int indent) const {
     if (shape.empty()) {
         std::cout << (*data)[offset] << std::endl;
         return;

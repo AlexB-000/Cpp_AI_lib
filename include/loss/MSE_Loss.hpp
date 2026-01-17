@@ -1,5 +1,5 @@
 #pragma once
-#include "./Loss_base.hpp"
+#include "./Loss.hpp"
 
 class MSELoss: public Loss{
 public:
