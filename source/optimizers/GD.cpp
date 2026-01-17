@@ -1,34 +1,40 @@
 #include "../../include/optimizers/GD.hpp"
 
-void GD::step(const Tensor& LossDeriv) {
+void GD::step(const std::vector<Tensor>& gradients, const float lr) {
     // std::cout << "Parameters before update:\n";
     // std::vector<Tensor*> params_before = model->get_parameters();
     // for (auto param : params_before) {
     //     param->show();
     // }
 
+    // std::cout << "Gradients:\n";
+    // for (size_t i = 0; i < gradients.size(); ++i) {
+    //     gradients[i].show();
+    // }
+
+    for (int i = 0; i < model->parameters.size(); ++i) {
+        *(model->parameters[i]) = *(model->parameters[i]) - gradients[i] * lr;
+    }
+}
+
+std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
     Tensor deriv = LossDeriv;
+    std::vector<Tensor> all_grads;
+
     for (std::shared_ptr<Module> layer : model->modules) {
         auto grad = layer->backward(deriv);
-        auto layerParams = layer->get_parameters();
-
-        // std::cout << "Gradients:\n";
-        // for (size_t i = 0; i < grad.size(); ++i) {
-        //     grad[i].show();
-        // }
-
-        for (size_t i = 0; i < layerParams.size(); ++i) {
-            *(layerParams[i]) = *(layerParams[i]) - grad[i] * learning_rate;
-        }
+        all_grads.insert(all_grads.end(), grad.begin(), grad.end());
         deriv = grad.back();
     }
+    return all_grads;
 }
 
 void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr) {
     
-    learning_rate = lr;
     unsigned int num_samples = X.size();
+
+    std::vector<Tensor> batch_gradient;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
@@ -36,19 +42,22 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
         double epoch_loss = 0.0;
 
         for (unsigned int i = 0; i < num_samples; i += batch_size) {
+            batch_gradient.clear();
+
             unsigned int actual_batch_size = std::min(batch_size, num_samples - i);
 
             for (unsigned int j = i; j < i+actual_batch_size; ++j) {
-                std::cout << "  --Sample " << j + 1 << "/" << num_samples << "\n";
+                // std::cout << "  --Sample " << j + 1 << "/" << num_samples << "\n";
 
                 Tensor output = model->forward(X[j]);
 
-                std::cout << "   --Input: ";
-                X[j].show();
-                std::cout << "   --Output: ";
-                output.show();
-                std::cout << "   --Target: ";
-                y[j].show();
+                // std::cout << "   --Input: ";
+                // X[j].show();
+                // std::cout << "   --Output: ";
+                // output.show();
+                // std::cout << "   --Target: ";
+                // y[j].show();
+
                 float loss_value = loss->compute(output, y[j]);
                 
                 epoch_loss += loss_value;
@@ -59,18 +68,31 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
                 // std::cout << "   --Loss Gradient: ";
                 // lossGrad.show();
 
-                step(lossGrad);
+                if (j == i) {
+                    batch_gradient = backpropagation(lossGrad);
+                } else {
+                    std::vector<Tensor> sample_grads = backpropagation(lossGrad);
+                    for (size_t k = 0; k < batch_gradient.size(); ++k) {
+                        batch_gradient[k] = batch_gradient[k] + sample_grads[k];
+                    }
+                }
             }
 
+            for (size_t k = 0; k < batch_gradient.size(); ++k) {
+                batch_gradient[k] = batch_gradient[k] * (1.0f / static_cast<float>(actual_batch_size));
+            }
+
+            step(batch_gradient, lr);
         }
+
         epoch_loss /= static_cast<float>(num_samples);
 
         std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
-        std::vector<Tensor*> params = model->get_parameters();
-        std::cout << "Epoch Parameters:\n";
-        for (auto param : params) {
-            param->show();
-        }
+        // std::vector<Tensor*> params = model->get_parameters();
+        // std::cout << "Epoch Parameters:\n";
+        // for (auto param : params) {
+        //     param->show();
+        // }
     }
 }

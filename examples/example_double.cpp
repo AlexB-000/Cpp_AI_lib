@@ -43,7 +43,7 @@ int main(){
     }
 
 
-    std::vector<std::vector<Tensor>> data = generate_data(100);
+    std::vector<std::vector<Tensor>> data = generate_data(1000);
     std::vector<Tensor> X = data[0];
     std::vector<Tensor> y = data[1];
 
@@ -56,11 +56,11 @@ int main(){
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
     MSELoss loss {1};
-    GD optimizer(&net, &loss, 0.01);
+    GD optimizer(&net, &loss);
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 1, 10, 0.5);
+    optimizer.train(X_train, y_train, 10, 100, 0.65);
 
     std::cout << "## Training completed.\n";
 

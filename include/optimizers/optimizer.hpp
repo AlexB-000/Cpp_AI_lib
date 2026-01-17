@@ -11,5 +11,4 @@ protected:
 public:
     Optimizer(Network* model, Loss* loss) : model(model), loss(loss) {}
     virtual ~Optimizer() = default;
-    virtual void step(const Tensor& LossDeriv) = 0;
 };
