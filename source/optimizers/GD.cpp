@@ -21,7 +21,7 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
     Tensor deriv = LossDeriv;
     std::vector<Tensor> all_grads;
 
-    for (unsigned int layer_idx = model->modules.size()-1; layer_idx >= 0; layer_idx--) {
+    for (int layer_idx = model->modules.size()-1; layer_idx >= 0; layer_idx--) {
         std::shared_ptr<Module> layer = model->modules[layer_idx];
         std::cout << "Backpropagating through layer : " << layer << "\n";
         auto grad = layer->backward(deriv);
@@ -29,7 +29,7 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
         for (size_t i = 0; i < grad.size() - 1; ++i) {
             grad[i].show();
         }
-        all_grads.insert(all_grads.end(), grad.begin(), grad.end());
+        all_grads.insert(all_grads.begin(), grad.begin(), grad.end());
         deriv = grad.back();
     }
     return all_grads;
@@ -85,7 +85,6 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
             }
 
             for (size_t k = 0; k < batch_gradient.size(); ++k) {
-                std::cout << "check batch gradient before averaging " << k << ":\n";
                 batch_gradient[k] = batch_gradient[k] * (1.0f / static_cast<float>(actual_batch_size));
             }
             std::cout << "  --Batch gradient:\n";
