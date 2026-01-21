@@ -31,11 +31,11 @@ std::vector<std::vector<Tensor>> generate_data(uint size){
 
 int main(){
     Network net(2, 1);
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 2);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 2, 0.5f, 1.0f);
     net.stackLayer(layer1);
     std::shared_ptr<ReLU> activation1 = std::make_shared<ReLU>(2, 2);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(2, 1);
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(2, 1, 0.5f, 1.0f);
     net.stackLayer(layer2);
     std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(1, 1);
     net.stackLayer(activation2);
