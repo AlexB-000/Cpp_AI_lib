@@ -128,6 +128,9 @@ Tensor Tensor::T() const {
 //MARK: - Access
 
 float& Tensor::operator[](const std::vector<unsigned int>& indices) const {
+    if (shape.size() == 0) {
+        return (*data)[offset];
+    }
     if (indices.size() != shape.size()) {
         throw std::out_of_range("Number of indices does not match tensor dimensions");
     }

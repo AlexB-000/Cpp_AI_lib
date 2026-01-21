@@ -21,8 +21,14 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
     Tensor deriv = LossDeriv;
     std::vector<Tensor> all_grads;
 
-    for (std::shared_ptr<Module> layer : model->modules) {
+    for (unsigned int layer_idx = model->modules.size()-1; layer_idx >= 0; layer_idx--) {
+        std::shared_ptr<Module> layer = model->modules[layer_idx];
+        std::cout << "Backpropagating through layer : " << layer << "\n";
         auto grad = layer->backward(deriv);
+        std::cout << "Layer backward gradients:\n";
+        for (size_t i = 0; i < grad.size() - 1; ++i) {
+            grad[i].show();
+        }
         all_grads.insert(all_grads.end(), grad.begin(), grad.end());
         deriv = grad.back();
     }
@@ -51,12 +57,12 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 
                 Tensor output = model->forward(X[j]);
 
-                // std::cout << "   --Input: ";
-                // X[j].show();
-                // std::cout << "   --Output: ";
-                // output.show();
-                // std::cout << "   --Target: ";
-                // y[j].show();
+                std::cout << "   --Input: ";
+                X[j].show();
+                std::cout << "   --Output: ";
+                output.show();
+                std::cout << "   --Target: ";
+                y[j].show();
 
                 float loss_value = loss->compute(output, y[j]);
                 
@@ -64,9 +70,9 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 
                 Tensor lossGrad = loss->get_gradient();
 
-                // std::cout << "   --Loss: " << loss_value << "\n";
-                // std::cout << "   --Loss Gradient: ";
-                // lossGrad.show();
+                std::cout << "   --Loss: " << loss_value << "\n";
+                std::cout << "   --Loss Gradient: ";
+                lossGrad.show();
 
                 if (j == i) {
                     batch_gradient = backpropagation(lossGrad);
@@ -79,9 +85,13 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
             }
 
             for (size_t k = 0; k < batch_gradient.size(); ++k) {
+                std::cout << "check batch gradient before averaging " << k << ":\n";
                 batch_gradient[k] = batch_gradient[k] * (1.0f / static_cast<float>(actual_batch_size));
             }
-
+            std::cout << "  --Batch gradient:\n";
+            for (size_t k = 0; k < batch_gradient.size(); ++k) {
+                batch_gradient[k].show();
+            }
             step(batch_gradient, lr);
         }
 

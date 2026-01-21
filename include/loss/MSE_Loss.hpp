@@ -12,8 +12,8 @@ public:
         for (size_t i = 0; i < predicted.shape[0]; ++i) {
             float diff = predicted[i] - target[i];
             loss += diff * diff;
-            gradient[i] = 2.0f * diff;
+            gradient[i] = 2.0f * diff / static_cast<float>(target.shape[0]);
         }
-        return loss / static_cast<float>(predicted.shape[0]);
+        return loss / static_cast<float>(target.shape[0]);
     }
 };
