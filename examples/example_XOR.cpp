@@ -29,13 +29,25 @@ std::vector<std::vector<Tensor>> generate_data(uint size){
     return {data, target};
 }
 
+float test_model(Network& net, const std::vector<Tensor>& X_test, const std::vector<Tensor>& y_test){
+    uint correct = 0;
+    for (size_t i=0; i<X_test.size(); i++){
+        Tensor output = net.forward(X_test[i]);
+        float predicted = output[0] >= 0.5f ? 1.0f : 0.0f;
+        if (predicted == y_test[i][0]){
+            correct++;
+        }
+    }
+    return static_cast<float>(correct) / static_cast<float>(X_test.size());
+}
+
 int main(){
     Network net(2, 1);
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 2, 0.5f, 1.0f);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 3, 0.5f, 1.0f);
     net.stackLayer(layer1);
-    std::shared_ptr<ReLU> activation1 = std::make_shared<ReLU>(2, 2);
+    std::shared_ptr<ReLU> activation1 = std::make_shared<ReLU>(3, 3);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(2, 1, 0.5f, 1.0f);
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(3, 1, 0.5f, 1.0f);
     net.stackLayer(layer2);
     std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(1, 1);
     net.stackLayer(activation2);
@@ -81,6 +93,9 @@ int main(){
     for (auto param : params) {
         param->show();
     }
+
+    float accuracy = test_model(net, X_test, y_test);
+    std::cout << "## Test Accuracy: " << accuracy * 100.0f << "%\n";
 
     return 0;
 }

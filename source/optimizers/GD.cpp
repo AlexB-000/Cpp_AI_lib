@@ -98,10 +98,10 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 
         std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
-        // std::vector<Tensor*> params = model->get_parameters();
-        // std::cout << "Epoch Parameters:\n";
-        // for (auto param : params) {
-        //     param->show();
-        // }
+        std::vector<Tensor*> params = model->get_parameters();
+        std::cout << "Epoch Parameters:\n";
+        for (auto param : params) {
+            param->show();
+        }
     }
 }
