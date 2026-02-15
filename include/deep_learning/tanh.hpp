@@ -10,6 +10,7 @@ public:
 
     ~Tanh() = default;
 
+    Tanh(unsigned int size) : inputSize(size), outputSize(size) {}
     Tanh(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
 
 	std::vector< Tensor* > get_parameters() override { return {}; };

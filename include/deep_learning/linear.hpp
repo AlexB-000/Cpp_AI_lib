@@ -23,7 +23,7 @@ public:
         // Initialize weights with small random values
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::normal_distribution<float> weight_dist(0.0, initWeightScale);
+        std::normal_distribution<float> weight_dist(-initWeightScale, initWeightScale);
 
         for (unsigned int i = 0; i < outputSize; ++i) {
             for (unsigned int j = 0; j < inputSize; ++j) {
@@ -32,7 +32,7 @@ public:
         }
 
         // Initialize biases
-        std::normal_distribution<float> bias_dist(0.0, initBiasScale);
+        std::normal_distribution<float> bias_dist(-initBiasScale, initBiasScale);
 
         for (unsigned int i = 0; i < outputSize; ++i) {
             biases[i] = bias_dist(gen);

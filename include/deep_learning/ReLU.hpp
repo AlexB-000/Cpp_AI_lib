@@ -9,6 +9,7 @@ public:
 
     ~ReLU() = default;
 
+    ReLU(unsigned int size) : inputSize(size), outputSize(size) {}
     ReLU(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
 
 	std::vector< Tensor* > get_parameters() override { return {}; };

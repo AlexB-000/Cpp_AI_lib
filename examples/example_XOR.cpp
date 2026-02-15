@@ -22,34 +22,48 @@ std::vector<std::vector<Tensor>> generate_data(uint size){
         float value2 = dis(gen);
         data.push_back(Tensor{{2}, {value1, value2}});
         if (value1 && value2 || (!value1 && !value2))
-            target.push_back(Tensor{{1}, {0.0f}});
+            target.push_back(Tensor{{1}, {-1.0f}});
         else
             target.push_back(Tensor{{1}, {1.0f}});
     }
     return {data, target};
 }
 
-float test_model(Network& net, const std::vector<Tensor>& X_test, const std::vector<Tensor>& y_test){
+float test_model(Network& net, const std::vector<Tensor>& X, const std::vector<Tensor>& y){
     uint correct = 0;
-    for (size_t i=0; i<X_test.size(); i++){
-        Tensor output = net.forward(X_test[i]);
-        float predicted = output[0] >= 0.5f ? 1.0f : 0.0f;
-        if (predicted == y_test[i][0]){
+    for (unsigned int i=0; i<X.size(); i++){
+        Tensor output = net.forward(X[i]);
+        float predicted = output[0] >= 0.0f ? 1.0f : -1.0f;
+        if (predicted == y[i][0]){
             correct++;
         }
     }
-    return static_cast<float>(correct) / static_cast<float>(X_test.size());
+    return static_cast<float>(correct) / static_cast<float>(X.size());
+}
+
+void printDecisionGraph(Network& net){
+    std::cout << std::fixed;
+    std::cout.precision(2);
+    std::cout << "## Decision Graph:\n";
+    for (float x1 = 0.0f; x1 <= 1.0f; x1 += 0.2f){
+        for (float x2 = 0.0f; x2 <= 1.0f; x2 += 0.2f){
+            Tensor input{{2}, {x1, x2}};
+            Tensor output = net.forward(input);
+            std::cout << output[0] << " ";
+        }
+        std::cout << "\n";
+    }
 }
 
 int main(){
     Network net(2, 1);
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 3, 0.5f, 1.0f);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.5f, 1.0f);
     net.stackLayer(layer1);
-    std::shared_ptr<ReLU> activation1 = std::make_shared<ReLU>(3, 3);
+    std::shared_ptr<Tanh> activation1 = std::make_shared<Tanh>(5);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(3, 1, 0.5f, 1.0f);
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 1, 0.5f, 1.0f);
     net.stackLayer(layer2);
-    std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(1, 1);
+    std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(1);
     net.stackLayer(activation2);
 
     std::cout << "## Network created.\n";
@@ -71,7 +85,7 @@ int main(){
     std::vector<Tensor> X = data[0];
     std::vector<Tensor> y = data[1];
 
-    std::vector<std::vector<Tensor>> splited = train_test_split(X, y, 0.1);
+    std::vector<std::vector<Tensor>> splited = train_test_split(X, y, 0.1f);
     std::vector<Tensor> X_train = splited[0];
     std::vector<Tensor> y_train = splited[1];
     std::vector<Tensor> X_test = splited[2];
@@ -84,7 +98,7 @@ int main(){
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 10, 100, 0.65);
+    optimizer.train(X_train, y_train, 10, 100, 1.0f);
 
     std::cout << "## Training completed.\n";
 
@@ -94,8 +108,13 @@ int main(){
         param->show();
     }
 
-    float accuracy = test_model(net, X_test, y_test);
-    std::cout << "## Test Accuracy: " << accuracy * 100.0f << "%\n";
+    float train_accuracy = test_model(net, X_train, y_train);
+    std::cout << "## Train Accuracy: " << train_accuracy * 100.0f << "%\n";
+
+    float test_accuracy = test_model(net, X_test, y_test);
+    std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
+
+    printDecisionGraph(net);
 
     return 0;
 }
