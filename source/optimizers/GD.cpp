@@ -113,3 +113,58 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
         }
     }
 }
+
+
+void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr) {
+    
+    std::vector<Tensor> batch_gradient;
+
+    for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
+        std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
+
+        double epoch_loss = 0.0;
+
+        for (unsigned int i = 0; i < data_loader.batch_quantity(); i++) {
+            batch_gradient.clear();
+
+            std::vector<std::vector<Tensor>> batch = data_loader.get_batch(i);
+            
+            unsigned int batch_size = batch.size();
+
+            for (unsigned int j = 0; j < batch_size; ++j) {
+                Tensor output = model->forward(batch[j][0]);
+                
+                float loss_value = loss->compute(output, batch[j][1]);
+                
+                epoch_loss += loss_value;
+
+                Tensor lossGrad = loss->get_gradient();
+                
+                if (j == 0) {
+                    batch_gradient = backpropagation(lossGrad);
+                } else {
+                    std::vector<Tensor> sample_grads = backpropagation(lossGrad);
+                    for (size_t k = 0; k < batch_gradient.size(); ++k) {
+                        batch_gradient[k] = batch_gradient[k] + sample_grads[k];
+                    }
+                }
+            }
+
+            for (size_t k = 0; k < batch_gradient.size(); ++k) {
+                batch_gradient[k] = batch_gradient[k] * (1.0f / static_cast<float>(batch_size));
+            }
+
+            step(batch_gradient, lr);
+        }
+
+        epoch_loss /= static_cast<float>(data_loader.dataset_size());
+
+        std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
+
+        std::vector<Tensor*> params = model->get_parameters();
+        std::cout << "Epoch Parameters:\n";
+        for (auto param : params) {
+            param->show();
+        }
+    }
+}
