@@ -1,4 +1,5 @@
 #pragma once
+#include <fstream>
 #include "../../Tensor/include/tensorMath.hpp"
 #include "module.hpp"
 
@@ -19,4 +20,7 @@ public:
 	std::vector< Tensor* > get_parameters() {return parameters;}
     Tensor forward(const Tensor& input) override;
     std::vector< Tensor > backward(const Tensor& prevDeriv) override;
+
+    void save(const std::string& filename) const;
+    void load(const std::string& filename);
 };

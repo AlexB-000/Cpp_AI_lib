@@ -37,7 +37,12 @@ void printDecisionGraph(Network& net){
     }
 }
 
-int main(){
+int main(int argc, char* argv[]){
+    bool loading = false;
+    if (argc == 2 && std::string(argv[1]) == "--load"){
+        loading = true;
+    }
+
     Network net(2, 1);
     std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.5f, 0.5f);
     net.stackLayer(layer1);
@@ -52,6 +57,7 @@ int main(){
     std::shared_ptr<Tanh> activation3 = std::make_shared<Tanh>(1);
     net.stackLayer(activation3);
 
+    if (loading) net.load("xor_dataset_model.bin");
 
     std::cout << "## Network created.\n";
 
@@ -66,6 +72,8 @@ int main(){
             std::cout << dim << " ";
         std::cout << "\n";
     }
+
+    printDecisionGraph(net);
 
     std::vector<std::vector<Tensor>> data = generate_data(1000);
     std::vector<Tensor> X = data[0];
@@ -104,6 +112,8 @@ int main(){
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);
+
+    net.save("xor_dataset_model.bin");
 
     return 0;
 }
