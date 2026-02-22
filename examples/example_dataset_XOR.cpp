@@ -39,15 +39,15 @@ void printDecisionGraph(Network& net){
 
 int main(){
     Network net(2, 1);
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.5f, 1.0f);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.5f, 0.5f);
     net.stackLayer(layer1);
     std::shared_ptr<Tanh> activation1 = std::make_shared<Tanh>(5);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 5, 0.5f, 1.0f);
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 5, 0.5f, 0.5f);
     net.stackLayer(layer2);
     std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(5);
     net.stackLayer(activation2);
-    std::shared_ptr<Linear> layer3 = std::make_shared<Linear>(5, 1, 0.5f, 1.0f);
+    std::shared_ptr<Linear> layer3 = std::make_shared<Linear>(5, 1, 0.5f, 0.5f);
     net.stackLayer(layer3);
     std::shared_ptr<Tanh> activation3 = std::make_shared<Tanh>(1);
     net.stackLayer(activation3);
@@ -87,7 +87,7 @@ int main(){
     std::cout << "## Starting training...\n";
 
     DataLoader train_dataloader (&train_dataset, 100);
-    optimizer.train(train_dataloader, 20, 0.1f);
+    optimizer.train(train_dataloader, 20, 1.0f);
 
     std::cout << "## Training completed.\n";
 
@@ -97,10 +97,10 @@ int main(){
         param->show();
     }
 
-    float train_accuracy = accuracy(net, X_train, y_train);
+    float train_accuracy = bin_accuracy(net, X_train, y_train);
     std::cout << "## Train Accuracy: " << train_accuracy * 100.0f << "%\n";
 
-    float test_accuracy = accuracy(net, X_test, y_test);
+    float test_accuracy = bin_accuracy(net, X_test, y_test);
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);
