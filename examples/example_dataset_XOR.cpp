@@ -1,15 +1,6 @@
 #include <iostream>
 #include <random>
-#include "../include/preprocessing/train_test_split.hpp"
-#include "../include/deep_learning/network.hpp"
-#include "../include/deep_learning/linear.hpp"
-#include "../include/optimizers/GD.hpp"
-#include "../include/loss/MSE_Loss.hpp"
-#include "../include/deep_learning/ReLU.hpp"
-#include "../include/deep_learning/tanh.hpp"
-#include "../include/evalutaion.hpp"
-#include "../include/DataLoader.hpp"
-#include "../include/Dataset.hpp"
+#include "../Cpp_AI.hpp"
 
 std::vector<std::vector<Tensor>> generate_data(uint size){
     std::vector<Tensor> data;
@@ -96,7 +87,7 @@ int main(){
     std::cout << "## Starting training...\n";
 
     DataLoader train_dataloader (&train_dataset, 100);
-    optimizer.train(train_dataloader, 10, 0.6f);
+    optimizer.train(train_dataloader, 20, 0.1f);
 
     std::cout << "## Training completed.\n";
 

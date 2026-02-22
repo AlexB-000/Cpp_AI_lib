@@ -1,6 +1,9 @@
 #pragma once
+
+#include "./Tensor/cpp_tensor.hpp"
+
 #include "include/preprocessing/train_test_split.hpp"
-#include "include/evalutaion.hpp"
+#include "include/evaluation.hpp"
 
 #include "include/deep_learning/network.hpp"
 #include "include/deep_learning/linear.hpp"
