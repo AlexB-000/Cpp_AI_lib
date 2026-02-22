@@ -44,7 +44,7 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
 }
 
 void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
-    const unsigned int epochs, unsigned int batch_size, const float lr) {
+    const unsigned int epochs, unsigned int batch_size, const float lr, bool show_progress) {
     
     unsigned int num_samples = X.size();
 
@@ -106,16 +106,18 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 
         std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
-        std::vector<Tensor*> params = model->get_parameters();
-        std::cout << "Epoch Parameters:\n";
-        for (auto param : params) {
-            param->show();
+        if (show_progress) {
+            std::vector<Tensor*> params = model->get_parameters();
+            std::cout << "Epoch Parameters:\n";
+            for (auto param : params) {
+                param->show();
+            }
         }
     }
 }
 
 
-void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr) {
+void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr, bool show_progress) {
     
     std::vector<Tensor> batch_gradient;
 
@@ -161,10 +163,12 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
 
         std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
-        std::vector<Tensor*> params = model->get_parameters();
-        std::cout << "Epoch Parameters:\n";
-        for (auto param : params) {
-            param->show();
+        if (show_progress) {
+            std::vector<Tensor*> params = model->get_parameters();
+            std::cout << "Epoch Parameters:\n";
+            for (auto param : params) {
+                param->show();
+            }
         }
     }
 }

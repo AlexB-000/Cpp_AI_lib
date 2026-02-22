@@ -60,7 +60,7 @@ int main(){
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 10, 100, 0.7);
+    optimizer.train(X_train, y_train, 10, 100, 0.7, true);
 
     std::cout << "## Training completed.\n";
 
