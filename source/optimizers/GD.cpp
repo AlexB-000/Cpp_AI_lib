@@ -44,7 +44,8 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
 }
 
 void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
-    const unsigned int epochs, unsigned int batch_size, const float lr, bool show_progress) {
+    const unsigned int epochs, unsigned int batch_size, const float lr,
+    bool show_progress, bool show_batch_progress) {
     
     unsigned int num_samples = X.size();
 
@@ -100,6 +101,10 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
             //     batch_gradient[k].show();
             // }
             step(batch_gradient, lr);
+
+            if (show_batch_progress) {
+                std::cout << "  batch completed " << (i / batch_size) + 1 << "/" << (num_samples / batch_size + 1) << "\n";
+            }
         }
 
         epoch_loss /= static_cast<float>(num_samples);
@@ -117,7 +122,8 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 }
 
 
-void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr, bool show_progress) {
+void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
+    bool show_progress, bool show_batch_progress) {
     
     std::vector<Tensor> batch_gradient;
 
@@ -157,6 +163,10 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             }
 
             step(batch_gradient, lr);
+
+            if (show_batch_progress) {
+                std::cout << "  batch completed " << i + 1 << "/" << data_loader.batch_quantity() << "\n";
+            }
         }
 
         epoch_loss /= static_cast<float>(data_loader.dataset_size());
