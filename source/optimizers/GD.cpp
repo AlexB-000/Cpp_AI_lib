@@ -1,19 +1,26 @@
 #include "../../include/optimizers/GD.hpp"
 
+void GD::thread_step(Tensor* param, const Tensor* grad, const float lr) {
+    (*param) = (*param) - (*grad) * lr;
+}
+
 void GD::step(const std::vector<Tensor>& gradients, const float lr) {
-    // std::cout << "Parameters before update:\n";
-    // std::vector<Tensor*> params_before = model->get_parameters();
-    // for (auto param : params_before) {
-    //     param->show();
+    
+    // uint32_t thread_count = std::thread::hardware_concurrency() - 1;
+
+    // if (thread_count > model->parameters.size()) {
+    //     thread_count = model->parameters.size();
     // }
 
-    // std::cout << "Gradients:\n";
-    // for (size_t i = 0; i < gradients.size(); ++i) {
-    //     gradients[i].show();
-    // }
+    uint32_t thread_count = model->parameters.size();
+
+    std::vector<std::thread> threads;
 
     for (int i = 0; i < model->parameters.size(); ++i) {
-        *(model->parameters[i]) = *(model->parameters[i]) - gradients[i] * lr;
+        threads.push_back(std::thread(&GD::thread_step, this, model->parameters[i], &gradients[i], lr));
+    }
+    for (std::thread& t : threads) {
+        t.join();
     }
 }
 

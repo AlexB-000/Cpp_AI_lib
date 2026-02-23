@@ -8,6 +8,8 @@ class GD : public Optimizer {
 protected:
     std::mutex train_thread_mutex;
 
+    void thread_step(Tensor* param, const Tensor* grad, const float lr);
+
     void step(const std::vector<Tensor>& gradients, const float lr);
 
     std::vector<Tensor> backpropagation(const Tensor& LossDeriv);
