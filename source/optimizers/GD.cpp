@@ -43,6 +43,16 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
     return all_grads;
 }
 
+void GD::train_oneSample(const Tensor* input, const Tensor* target, std::vector<Tensor>* gradient, float* loss_value) {
+    Tensor output = model->forward(*input);
+    
+    *loss_value = loss->compute(output, *target);
+
+    Tensor lossGrad = loss->get_gradient();
+
+    *gradient = backpropagation(lossGrad);
+}
+
 void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
     bool show_progress, bool show_batch_progress) {
@@ -51,55 +61,50 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 
     std::vector<Tensor> batch_gradient;
 
+    uint thread_count = std::thread::hardware_concurrency();
+
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
 
-        double epoch_loss = 0.0;
+        float epoch_loss = 0.0;
 
         for (unsigned int i = 0; i < num_samples; i += batch_size) {
             batch_gradient.clear();
 
             unsigned int actual_batch_size = std::min(batch_size, num_samples - i);
 
-            for (unsigned int j = i; j < i+actual_batch_size; ++j) {
-                // std::cout << "  --Sample " << j + 1 << "/" << num_samples << "\n";
+            std::vector<std::vector<Tensor>> sample_grads (actual_batch_size);
+            std::vector<float> sample_loss_values (actual_batch_size);
 
-                Tensor output = model->forward(X[j]);
-
-                // std::cout << "   --Input: ";
-                // X[j].show();
-                // std::cout << "   --Output: ";
-                // output.show();
-                // std::cout << "   --Target: ";
-                // y[j].show();
-
-                float loss_value = loss->compute(output, y[j]);
-                
-                epoch_loss += loss_value;
-
-                Tensor lossGrad = loss->get_gradient();
-
-                // std::cout << "   --Loss: " << loss_value << "\n";
-                // std::cout << "   --Loss Gradient: ";
-                // lossGrad.show();
-
-                if (j == i) {
-                    batch_gradient = backpropagation(lossGrad);
-                } else {
-                    std::vector<Tensor> sample_grads = backpropagation(lossGrad);
-                    for (size_t k = 0; k < batch_gradient.size(); ++k) {
-                        batch_gradient[k] = batch_gradient[k] + sample_grads[k];
-                    }
+            std::vector<std::thread> threads;
+            unsigned int samples_per_thread = actual_batch_size / thread_count + 1;
+            
+            for (unsigned int t = 0; t < thread_count; ++t) {
+                const unsigned int data_start_index = i + t * samples_per_thread;
+                const unsigned int result_start_index = t * samples_per_thread;
+                const unsigned int count = std::min(samples_per_thread, actual_batch_size - t * samples_per_thread);
+                threads.push_back(std::thread(&GD::train_oneThread, this,
+                    &X, &y, &sample_grads, &sample_loss_values,
+                    data_start_index, result_start_index, count));
+            }
+            for (std::thread& t : threads) {
+                t.join();
+            }
+            
+            batch_gradient = sample_grads[0];
+            for (size_t j = 1; j < sample_grads.size(); ++j) {
+                for (size_t p = 0; p < batch_gradient.size(); ++p) {
+                    batch_gradient[p] = batch_gradient[p] + sample_grads[j][p];
                 }
             }
-
-            for (size_t k = 0; k < batch_gradient.size(); ++k) {
-                batch_gradient[k] = batch_gradient[k] * (1.0f / static_cast<float>(actual_batch_size));
+            for (size_t p = 0; p < batch_gradient.size(); ++p) {
+                batch_gradient[p] = batch_gradient[p] * (1.0f / static_cast<float>(actual_batch_size));
             }
-            // std::cout << "  --Batch gradient:\n";
-            // for (size_t k = 0; k < batch_gradient.size(); ++k) {
-            //     batch_gradient[k].show();
-            // }
+
+            for (float loss : sample_loss_values) {
+                epoch_loss += loss;
+            }
+            
             step(batch_gradient, lr);
 
             if (show_batch_progress) {
@@ -127,6 +132,8 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
     
     std::vector<Tensor> batch_gradient;
 
+    uint thread_count = std::thread::hardware_concurrency();
+
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
 
@@ -139,27 +146,36 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             
             unsigned int batch_size = batch.size();
 
-            for (unsigned int j = 0; j < batch_size; ++j) {
-                Tensor output = model->forward(batch[j][0]);
-                
-                float loss_value = loss->compute(output, batch[j][1]);
-                
-                epoch_loss += loss_value;
+            std::vector<std::vector<Tensor>> sample_grads (batch_size);
+            std::vector<float> sample_loss_values (batch_size);
 
-                Tensor lossGrad = loss->get_gradient();
+            std::vector<std::thread> threads;
+            unsigned int samples_per_thread = batch_size / thread_count + 1;
+            
+            for (unsigned int t = 0; t < thread_count; ++t) {
+                unsigned int start_index = t * samples_per_thread;
+                unsigned int count = std::min(samples_per_thread, batch_size - start_index);
                 
-                if (j == 0) {
-                    batch_gradient = backpropagation(lossGrad);
-                } else {
-                    std::vector<Tensor> sample_grads = backpropagation(lossGrad);
-                    for (size_t k = 0; k < batch_gradient.size(); ++k) {
-                        batch_gradient[k] = batch_gradient[k] + sample_grads[k];
-                    }
-                }
+                threads.push_back(std::thread(&GD::train_oneThread_batch, this,
+                    &batch, &sample_grads, &sample_loss_values,
+                    start_index, count));
+            }
+            for (auto& t : threads) {
+                t.join();
             }
 
+            batch_gradient = sample_grads[0];
+            for (size_t j = 1; j < sample_grads.size(); ++j) {
+                for (size_t k = 0; k < batch_gradient.size(); ++k) {
+                    batch_gradient[k] = batch_gradient[k] + sample_grads[j][k];
+                }
+            }
             for (size_t k = 0; k < batch_gradient.size(); ++k) {
                 batch_gradient[k] = batch_gradient[k] * (1.0f / static_cast<float>(batch_size));
+            }
+
+            for (float loss : sample_loss_values) {
+                epoch_loss += loss;
             }
 
             step(batch_gradient, lr);
