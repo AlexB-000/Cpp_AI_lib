@@ -61,7 +61,7 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 
     std::vector<Tensor> batch_gradient;
 
-    uint thread_count = std::thread::hardware_concurrency();
+    uint32_t thread_count = std::thread::hardware_concurrency() - 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
@@ -132,7 +132,7 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
     
     std::vector<Tensor> batch_gradient;
 
-    uint thread_count = std::thread::hardware_concurrency();
+    uint32_t thread_count = std::thread::hardware_concurrency() - 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
