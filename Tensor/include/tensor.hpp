@@ -8,17 +8,24 @@
 #include "slice.hpp"
 
 class Tensor {
+    // main full constructor
+    Tensor(const std::vector<unsigned int> inShape, const std::vector<unsigned int> inStrides,
+    const std::shared_ptr<std::vector<float>>& inData, const unsigned int inOffset, bool is_subtensor);
+
+    inline void _create_new_tensor(const std::vector<unsigned int>& shape, const float value=0);
+    inline void _deep_copy(const Tensor& other);
 public:
+    // main constructors
     Tensor(const std::vector<unsigned int>& shape, const float value=0);
-    Tensor(const float value=0) : Tensor(std::vector<unsigned int>{}, value) {};
+    Tensor(const Tensor& other);
+
+    // other constructors
     Tensor(const std::vector<unsigned int>& shape, const std::vector<float>& initData) :
         Tensor(shape) {
             data = std::make_shared<std::vector<float>>(initData);
     }
-    Tensor(const std::vector<unsigned int> inShape, const std::vector<unsigned int> inStrides,
-    const std::shared_ptr<std::vector<float>>& inData, const unsigned int inOffset);
-    
-    Tensor(const Tensor& other);
+    Tensor(const float value=0) : Tensor(std::vector<unsigned int>{}, value) {};
+
     Tensor& operator=(const Tensor& other);
 
     Tensor copy() const ;
@@ -47,9 +54,15 @@ public:
     Tensor operator*(const Tensor& other) const;
     Tensor operator/(const Tensor& other) const;
 
+    friend Tensor fast_elementwise_add(const Tensor& A, const Tensor& B);
+    friend Tensor fast_elementwise_sub(const Tensor& A, const Tensor& B);
+    friend Tensor fast_elementwise_mul(const Tensor& A, const Tensor& B);
+    friend Tensor fast_elementwise_div(const Tensor& A, const Tensor& B);
+
     std::shared_ptr<std::vector<float>> data;
 
-    unsigned int offset = 0; // Offset for views/slices
+    bool _is_subtensor = false;
+    unsigned int offset = 0; // Offset for views
 
     std::vector <unsigned int> strides;
     std::vector <unsigned int> shape;
@@ -59,3 +72,8 @@ public:
 
 Tensor cat(const std::vector< Tensor >& tensors, unsigned int axis=0);
 Tensor stack(const std::vector< Tensor >& tensors, unsigned int axis=0);
+
+Tensor fast_elementwise_add(const Tensor& A, const Tensor& B);
+Tensor fast_elementwise_sub(const Tensor& A, const Tensor& B);
+Tensor fast_elementwise_mul(const Tensor& A, const Tensor& B);
+Tensor fast_elementwise_div(const Tensor& A, const Tensor& B);
