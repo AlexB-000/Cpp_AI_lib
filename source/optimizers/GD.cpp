@@ -102,6 +102,9 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
             unsigned int samples_per_thread = (batch_size + thread_count - 1) / thread_count;
             
             for (unsigned int t = 0; t < thread_count; ++t) {
+                if (t * samples_per_thread >= actual_batch_size) {
+                    break; // No more samples to process
+                }
                 const unsigned int data_start_index = i + t * samples_per_thread;
                 const unsigned int count = std::min(samples_per_thread, actual_batch_size - t * samples_per_thread);
                 threads.push_back(std::thread(&GD::train_oneThread, this,
@@ -167,6 +170,9 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             unsigned int samples_per_thread = (batch_size + thread_count - 1) / thread_count;
             
             for (unsigned int t = 0; t < thread_count; ++t) {
+                if (t * samples_per_thread >= batch_size) {
+                    break; // No more samples to process
+                }
                 unsigned int start_index = t * samples_per_thread;
                 unsigned int count = std::min(samples_per_thread, batch_size - start_index);
                 
