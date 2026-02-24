@@ -70,13 +70,15 @@ void GD::train_oneSample(const Tensor* input, const Tensor* target, std::vector<
 
 void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
-    bool show_progress, bool show_batch_progress) {
+    bool show_progress, bool show_batch_progress, bool flat_out) {
     
     unsigned int num_samples = X.size();
 
     std::vector<Tensor> batch_gradient;
 
-    uint32_t thread_count = std::thread::hardware_concurrency() - 1;
+    uint32_t max_thread_count;
+    if (flat_out) max_thread_count = std::thread::hardware_concurrency();
+    else max_thread_count = std::thread::hardware_concurrency() - 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
@@ -87,6 +89,14 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
             batch_gradient.clear();
 
             unsigned int actual_batch_size = std::min(batch_size, num_samples - i);
+
+            uint32_t thread_count;
+            if (actual_batch_size < max_thread_count) {
+                // If the batch size is smaller than the number of threads, reduce the thread count
+                thread_count = actual_batch_size;
+            } else {
+                thread_count = max_thread_count;
+            }
 
             std::vector<std::thread> threads;
             unsigned int samples_per_thread = (batch_size + thread_count - 1) / thread_count;
@@ -125,11 +135,13 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 
 
 void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
-    bool show_progress, bool show_batch_progress) {
+    bool show_progress, bool show_batch_progress, bool flat_out) {
     
     std::vector<Tensor> batch_gradient;
 
-    uint32_t thread_count = std::thread::hardware_concurrency() - 1;
+    uint32_t max_thread_count;
+    if (flat_out) max_thread_count = std::thread::hardware_concurrency();
+    else max_thread_count = std::thread::hardware_concurrency() - 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
@@ -142,6 +154,14 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             std::vector<std::vector<Tensor>> batch = data_loader.get_batch(i);
             
             unsigned int batch_size = batch.size();
+
+            uint32_t thread_count;
+            if (batch_size < max_thread_count) {
+                // If the batch size is smaller than the number of threads, reduce the thread count
+                thread_count = batch_size;
+            } else {
+                thread_count = max_thread_count;
+            }
 
             std::vector<std::thread> threads;
             unsigned int samples_per_thread = (batch_size + thread_count - 1) / thread_count;
