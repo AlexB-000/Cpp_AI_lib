@@ -7,6 +7,7 @@
 #include "../include/loss/MSE_Loss.hpp"
 #include "../include/deep_learning/ReLU.hpp"
 #include "../include/deep_learning/tanh.hpp"
+#include "../include/evaluation.hpp"
 
 std::vector<std::vector<Tensor>> generate_data(uint size){
     std::vector<Tensor> data;
@@ -27,18 +28,6 @@ std::vector<std::vector<Tensor>> generate_data(uint size){
             target.push_back(Tensor{{1}, {1.0f}});
     }
     return {data, target};
-}
-
-float test_model(Network& net, const std::vector<Tensor>& X, const std::vector<Tensor>& y){
-    uint correct = 0;
-    for (unsigned int i=0; i<X.size(); i++){
-        Tensor output = net.forward(X[i]);
-        float predicted = output[0] >= 0.0f ? 1.0f : -1.0f;
-        if (predicted == y[i][0]){
-            correct++;
-        }
-    }
-    return static_cast<float>(correct) / static_cast<float>(X.size());
 }
 
 void printDecisionGraph(Network& net){
@@ -108,10 +97,10 @@ int main(){
         param->show();
     }
 
-    float train_accuracy = test_model(net, X_train, y_train);
+    float train_accuracy = bin_accuracy(net, X_train, y_train);
     std::cout << "## Train Accuracy: " << train_accuracy * 100.0f << "%\n";
 
-    float test_accuracy = test_model(net, X_test, y_test);
+    float test_accuracy = bin_accuracy(net, X_test, y_test);
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);

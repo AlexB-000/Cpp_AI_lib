@@ -38,17 +38,36 @@ float bin_accuracy(Network& net, const std::vector<Tensor>& X, const std::vector
     return static_cast<float>(correct) / static_cast<float>(X.size());
 }
 
-float bin_accuracy(Network& net, const Dataset& dataset){
-    std::vector<Tensor> X, y;
-
-    for (unsigned int i=0; i<dataset.size(); i++){
-        std::vector<Tensor> sample = dataset[i];
-        X.push_back(sample[0]);
-        y.push_back(sample[1]);
-    }
-    return bin_accuracy(net, X, y);
+void bin_accuracy_thread_dataset(Network net, const Dataset* dataset,
+        std::vector<short>* results, unsigned int start_index, unsigned int count){
+    for (unsigned int i=0; i<count; i++){
+        (*results)[start_index + i] = bin_accuracy_sample(net, &(*dataset)[start_index + i][0], &(*dataset)[start_index + i][1]);
+     }
 }
 
+float bin_accuracy(Network& net, const Dataset& dataset){
+    uint correct = 0;
+    std::vector<short> thread_results(dataset.size());
+    std::vector<std::thread> threads;
+
+    uint32_t thread_count = std::thread::hardware_concurrency() - 1;
+    unsigned int samples_per_thread = dataset.size() / thread_count + 1;
+
+    for (uint32_t i=0; i<dataset.size(); i+= samples_per_thread){
+        unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(dataset.size() - i));
+        threads.push_back(std::thread(bin_accuracy_thread_dataset, net, &dataset, &thread_results, i, batch_size));
+    }
+    for (std::thread& t : threads){
+        t.join();
+    }
+    for (short result : thread_results){
+        correct += result;
+    }
+    return static_cast<float>(correct) / static_cast<float>(dataset.size());
+}
+
+
+//MARK: Multiclass accuracy functions
 short multiclass_accuracy_sample(Network net, const Tensor *input, const Tensor *target){
     Tensor output = net.forward(*input);
     unsigned int predicted = 0;
@@ -93,13 +112,30 @@ float multiclass_accuracy(Network& net, const std::vector<Tensor>& X, const std:
     return static_cast<float>(correct) / static_cast<float>(X.size());
 }
 
-float multiclass_accuracy(Network& net, const Dataset& dataset){
-    std::vector<Tensor> X, y;
-
-    for (unsigned int i=0; i<dataset.size(); i++){
-        std::vector<Tensor> sample = dataset[i];
-        X.push_back(sample[0]);
-        y.push_back(sample[1]);
+void multiclass_accuracy_thread_dataset(Network net, const Dataset* dataset,
+        std::vector<short>* results, unsigned int start_index, unsigned int count){
+    for (unsigned int i=0; i<count; i++){
+        (*results)[start_index + i] = multiclass_accuracy_sample(net, &(*dataset)[start_index + i][0], &(*dataset)[start_index + i][1]);
     }
-    return multiclass_accuracy(net, X, y);
+}
+
+float multiclass_accuracy(Network& net, const Dataset& dataset){
+    uint correct = 0;
+    std::vector<short> thread_results(dataset.size());
+    std::vector<std::thread> threads;
+
+    uint32_t thread_count = std::thread::hardware_concurrency() - 1;
+    unsigned int samples_per_thread = dataset.size() / thread_count + 1;
+
+    for (uint32_t i=0; i<dataset.size(); i+= samples_per_thread){
+        unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(dataset.size() - i));
+        threads.push_back(std::thread(multiclass_accuracy_thread_dataset, net, &dataset, &thread_results, i, batch_size));
+    }
+    for (std::thread& t : threads){
+        t.join();
+    }
+    for (short result : thread_results){
+        correct += result;
+    }
+    return static_cast<float>(correct) / static_cast<float>(dataset.size());
 }
