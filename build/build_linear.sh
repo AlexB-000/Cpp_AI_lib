@@ -1,1 +1,0 @@
-g++ -c ../source/deep_learning/linear.cpp -o ../bin/linear.o

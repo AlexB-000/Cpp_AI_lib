@@ -1,1 +1,0 @@
-g++ -c ../source/deep_learning/network.cpp -o ../bin/network.o
