@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "../Tensor/include/tensor.hpp"
+#include "../Arrays/cpp_arrays.hpp"
 
 class Dataset{
 protected:
@@ -9,17 +9,17 @@ public:
     Dataset(size_t inSize): _size(inSize){}
 
     size_t size() const { return _size; }
-    virtual std::vector<Tensor> operator[](size_t index) const = 0;
+    virtual std::vector<Array<float>> operator[](size_t index) const = 0;
 };
 
-class TensorDataset: public Dataset{
-    std::vector<Tensor> data;
-    std::vector<Tensor> target;
+class ArrayDataset: public Dataset{
+    std::vector<Array<float>> data;
+    std::vector<Array<float>> target;
 
 public:
-    TensorDataset(std::vector<Tensor> X, std::vector<Tensor> y): Dataset(X.size()), data(X), target(y) {}
+    ArrayDataset(std::vector<Array<float>> X, std::vector<Array<float>> y): Dataset(X.size()), data(X), target(y) {}
 
-    virtual std::vector<Tensor> operator[](size_t index) const override {
+    virtual std::vector<Array<float>> operator[](size_t index) const override {
         return {data[index], target[index]};
     }
 };

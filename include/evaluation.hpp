@@ -1,23 +1,23 @@
 #pragma once
 #include <thread>
-#include "../Tensor/cpp_tensor.hpp"
+#include "../Arrays/cpp_arrays.hpp"
 #include "Dataset.hpp"
 #include "./deep_learning/network.hpp"
 
-short bin_accuracy_sample(Network net, const Tensor *input, const Tensor *target){
-    Tensor output = net.forward(*input);
+short bin_accuracy_sample(Network net, const Array<float> *input, const Array<float> *target){
+    Array<float> output = net.forward(*input);
     float predicted = output[0] >= 0.0f ? 1.0f : -1.0f;
     return predicted == (*target)[0] ? 1 : 0;
 }
 
-void bin_accuracy_thread(Network net, const std::vector<Tensor>* inputs, const std::vector<Tensor>* targets,
+void bin_accuracy_thread(Network net, const std::vector<Array<float>>* inputs, const std::vector<Array<float>>* targets,
         std::vector<short>* results, unsigned int start_index, unsigned int count){
     for (unsigned int i=0; i<count; i++){
         (*results)[start_index + i] = bin_accuracy_sample(net, &(*inputs)[start_index + i], &(*targets)[start_index + i]);
      }
 }
 
-float bin_accuracy(Network& net, const std::vector<Tensor>& X, const std::vector<Tensor>& y){
+float bin_accuracy(Network& net, const std::vector<Array<float>>& X, const std::vector<Array<float>>& y){
     uint correct = 0;
     std::vector<short> thread_results(X.size());
     std::vector<std::thread> threads;
@@ -68,8 +68,8 @@ float bin_accuracy(Network& net, const Dataset& dataset){
 
 
 //MARK: Multiclass accuracy functions
-short multiclass_accuracy_sample(Network net, const Tensor *input, const Tensor *target){
-    Tensor output = net.forward(*input);
+short multiclass_accuracy_sample(Network net, const Array<float> *input, const Array<float> *target){
+    Array<float> output = net.forward(*input);
     unsigned int predicted = 0;
     for (unsigned int j=1; j < output.shape[0]; j++){
         if (output[j] > output[predicted]){
@@ -84,14 +84,14 @@ short multiclass_accuracy_sample(Network net, const Tensor *input, const Tensor 
     return 0;
 }
 
-void multiclass_accuracy_thread(Network net, const std::vector<Tensor>* inputs, const std::vector<Tensor>* targets,
+void multiclass_accuracy_thread(Network net, const std::vector<Array<float>>* inputs, const std::vector<Array<float>>* targets,
         std::vector<short>* results, unsigned int start_index, unsigned int count){
     for (unsigned int i=0; i<count; i++){
         (*results)[start_index + i] = multiclass_accuracy_sample(net, &(*inputs)[start_index + i], &(*targets)[start_index + i]);
     }
 }
 
-float multiclass_accuracy(Network& net, const std::vector<Tensor>& X, const std::vector<Tensor>& y){
+float multiclass_accuracy(Network& net, const std::vector<Array<float>>& X, const std::vector<Array<float>>& y){
     uint correct = 0;
     std::vector<short> thread_results(X.size());
     std::vector<std::thread> threads;

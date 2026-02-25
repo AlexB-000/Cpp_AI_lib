@@ -1,6 +1,6 @@
 #pragma once
 #include <fstream>
-#include "../../Tensor/include/tensorMath.hpp"
+#include "../../Arrays/cpp_arrays.hpp"
 #include "module.hpp"
 
 class Network: public Module{
@@ -8,8 +8,8 @@ public:
     std::vector<std::shared_ptr<Module>> modules;
     unsigned int inputSize;
     unsigned int outputSize;
-    //std::vector< Tensor > layerInputs;
-    std::vector< Tensor * > parameters;
+    //std::vector< Array<float> > layerInputs;
+    std::vector< Array<float> * > parameters;
 
     ~Network() = default;
 	
@@ -17,9 +17,9 @@ public:
 	
 	void stackLayer(const std::shared_ptr<Module> layer);
 
-	std::vector< Tensor* > get_parameters() {return parameters;}
-    Tensor forward(const Tensor& input) override;
-    std::vector< Tensor > backward(const Tensor& prevDeriv) override;
+	std::vector< Array<float>* > get_parameters() {return parameters;}
+    Array<float> forward(const Array<float>& input) override;
+    std::vector< Array<float> > backward(const Array<float>& prevDeriv) override;
 
     void save(const std::string& filename) const;
     void load(const std::string& filename);

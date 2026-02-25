@@ -1,1 +1,0 @@
-g++ test.cpp ../bin/tensorMath.o ../bin/tensor.o -o test

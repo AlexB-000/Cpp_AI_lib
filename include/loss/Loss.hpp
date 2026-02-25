@@ -1,14 +1,14 @@
 #pragma once
 #include <vector>
-#include "../../Tensor/include/tensor.hpp"
+#include "../../Arrays/cpp_arrays.hpp"
 
 class Loss {
 protected:
     int size;
-    Tensor gradient;
+    Array<float> gradient;
 public:
     virtual ~Loss() = default;
     Loss(unsigned int inSize) : size(inSize), gradient({inSize}, 1.0f) {}
-    virtual float compute(const Tensor& predicted, const Tensor& target) = 0;
-    virtual Tensor get_gradient() {return gradient;}
+    virtual float compute(const Array<float>& predicted, const Array<float>& target) = 0;
+    virtual Array<float> get_gradient() {return gradient;}
 };

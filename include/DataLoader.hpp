@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "../Tensor/include/tensor.hpp"
+#include "../Arrays/cpp_arrays.hpp"
 #include "Dataset.hpp"
 
 struct DataLoader{
@@ -17,8 +17,8 @@ public:
 
     unsigned int batch_quantity() const { return nb_batches; }
 
-    std::vector<std::vector<Tensor>> get_batch(unsigned int batch_num){
-        std::vector<std::vector<Tensor>> batch;
+    std::vector<std::vector<Array<float>>> get_batch(unsigned int batch_num){
+        std::vector<std::vector<Array<float>>> batch;
         unsigned int start_index = batch_num * batch_size;
         for (unsigned int i = 0; i < batch_size; i++){
             if (start_index + i >= dataset->size()) {

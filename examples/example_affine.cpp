@@ -6,9 +6,9 @@
 #include "../include/optimizers/GD.hpp"
 #include "../include/loss/MSE_Loss.hpp"
 
-std::vector<std::vector<Tensor>> generate_data(uint size){
-    std::vector<Tensor> data;
-    std::vector<Tensor> target;
+std::vector<std::vector<Array<float>>> generate_data(uint size){
+    std::vector<Array<float>> data;
+    std::vector<Array<float>> target;
 
     //random numbers generator
     std::random_device rd;
@@ -17,8 +17,8 @@ std::vector<std::vector<Tensor>> generate_data(uint size){
 
     for (uint i=0; i<size; i++){
         float value = dis(gen)/10.0f;
-        data.push_back(Tensor{{1}, {value}});
-        target.push_back(Tensor{{1}, {value*2 + 1}});
+        data.push_back(Array<float>{{1}, {value}});
+        target.push_back(Array<float>{{1}, {value*2 + 1}});
     }
     return {data, target};
 }
@@ -30,7 +30,7 @@ int main(){
 
     std::cout << "## Network created.\n";
 
-    std::vector< Tensor* > params = net.get_parameters();
+    std::vector< Array<float>* > params = net.get_parameters();
     std::cout << "Initial Parameters:\n";
     for (auto param : params) {
         param->show();
@@ -43,15 +43,15 @@ int main(){
     }
 
 
-    std::vector<std::vector<Tensor>> data = generate_data(1000);
-    std::vector<Tensor> X = data[0];
-    std::vector<Tensor> y = data[1];
+    std::vector<std::vector<Array<float>>> data = generate_data(1000);
+    std::vector<Array<float>> X = data[0];
+    std::vector<Array<float>> y = data[1];
 
-    std::vector<std::vector<Tensor>> splited = train_test_split(X, y, 0.1);
-    std::vector<Tensor> X_train = splited[0];
-    std::vector<Tensor> y_train = splited[1];
-    std::vector<Tensor> X_test = splited[2];
-    std::vector<Tensor> y_test = splited[3];
+    std::vector<std::vector<Array<float>>> splited = train_test_split(X, y, 0.1);
+    std::vector<Array<float>> X_train = splited[0];
+    std::vector<Array<float>> y_train = splited[1];
+    std::vector<Array<float>> X_test = splited[2];
+    std::vector<Array<float>> y_test = splited[3];
 
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 

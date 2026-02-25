@@ -2,25 +2,25 @@
 
 void Network::stackLayer(const std::shared_ptr<Module> layer){
 	modules.push_back(layer);
-	std::vector< Tensor* > layerParams = layer->get_parameters();
+	std::vector< Array<float>* > layerParams = layer->get_parameters();
 	parameters.insert(parameters.end(), layerParams.begin(), layerParams.end());
 }
 
-Tensor Network::forward(const Tensor& input){
-	Tensor output = input;
+Array<float> Network::forward(const Array<float>& input){
+	Array<float> output = input;
 	for(auto& layer : modules){
 		output = layer->forward(output);
 	}
 	return output;
 }
 
-std::vector< Tensor > Network::backward(const Tensor& prevDeriv){
+std::vector< Array<float> > Network::backward(const Array<float>& prevDeriv){
 
-	Tensor deriv = prevDeriv;
+	Array<float> deriv = prevDeriv;
 
-	std::vector< Tensor > allDerivs;
+	std::vector< Array<float> > allDerivs;
 	for(int i = modules.size() - 1; i >= 0; i--){
-		std::vector< Tensor > layerDerivs = modules[i]->backward(deriv);
+		std::vector< Array<float> > layerDerivs = modules[i]->backward(deriv);
 		deriv = layerDerivs.back();
 		layerDerivs.pop_back();
 		allDerivs.insert(allDerivs.begin(), layerDerivs.begin(), layerDerivs.end());
@@ -35,10 +35,10 @@ void Network::save(const std::string& filename) const {
 		return;
 	}
 
-	for (const auto& param : parameters) {
-		unsigned int size = param->data->size();
+	for (const Array<float>* param : parameters) {
+		unsigned int size = param->data.size();
 		for (unsigned int i = 0; i < size; i++) {
-			float value = (*param->data)[i];
+			float value = param->data[i];
 			outFile.write(reinterpret_cast<const char*>(&value), sizeof(value));
 		}
 	}
@@ -51,12 +51,12 @@ void Network::load(const std::string& filename) {
 		return;
 	}
 
-	for (auto& param : parameters) {
-		unsigned int size = param->data->size();
+	for (Array<float>* param : parameters) {
+		unsigned int size = param->data.size();
 		for (unsigned int i = 0; i < size; i++) {
 			float value;
 			inFile.read(reinterpret_cast<char*>(&value), sizeof(value));
-			(*param->data)[i] = value;
+			param->data[i] = value;
 		}
 	}
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./Tensor/cpp_tensor.hpp"
+#include "./Arrays/cpp_arrays.hpp"
 
 #include "include/preprocessing/train_test_split.hpp"
 #include "include/evaluation.hpp"

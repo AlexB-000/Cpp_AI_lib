@@ -9,9 +9,9 @@
 #include "../include/deep_learning/tanh.hpp"
 #include "../include/evaluation.hpp"
 
-std::vector<std::vector<Tensor>> generate_data(uint size){
-    std::vector<Tensor> data;
-    std::vector<Tensor> target;
+std::vector<std::vector<Array<float>>> generate_data(uint size){
+    std::vector<Array<float>> data;
+    std::vector<Array<float>> target;
 
     //random numbers generator
     std::random_device rd;
@@ -21,11 +21,11 @@ std::vector<std::vector<Tensor>> generate_data(uint size){
     for (uint i=0; i<size; i++){
         float value1 = dis(gen);
         float value2 = dis(gen);
-        data.push_back(Tensor{{2}, {value1, value2}});
+        data.push_back(Array<float>{{2}, {value1, value2}});
         if (value1 && value2 || (!value1 && !value2))
-            target.push_back(Tensor{{1}, {-1.0f}});
+            target.push_back(Array<float>{{1}, {-1.0f}});
         else
-            target.push_back(Tensor{{1}, {1.0f}});
+            target.push_back(Array<float>{{1}, {1.0f}});
     }
     return {data, target};
 }
@@ -36,8 +36,8 @@ void printDecisionGraph(Network& net){
     std::cout << "## Decision Graph:\n";
     for (float x1 = 0.0f; x1 <= 1.0f; x1 += 0.2f){
         for (float x2 = 0.0f; x2 <= 1.0f; x2 += 0.2f){
-            Tensor input{{2}, {x1, x2}};
-            Tensor output = net.forward(input);
+            Array<float> input{{2}, {x1, x2}};
+            Array<float> output = net.forward(input);
             std::cout << output[0] << " ";
         }
         std::cout << "\n";
@@ -57,7 +57,7 @@ int main(){
 
     std::cout << "## Network created.\n";
 
-    std::vector< Tensor* > params = net.get_parameters();
+    std::vector< Array<float>* > params = net.get_parameters();
     std::cout << "Initial Parameters:\n";
     for (auto param : params) {
         param->show();
@@ -70,15 +70,15 @@ int main(){
     }
 
 
-    std::vector<std::vector<Tensor>> data = generate_data(1000);
-    std::vector<Tensor> X = data[0];
-    std::vector<Tensor> y = data[1];
+    std::vector<std::vector<Array<float>>> data = generate_data(1000);
+    std::vector<Array<float>> X = data[0];
+    std::vector<Array<float>> y = data[1];
 
-    std::vector<std::vector<Tensor>> splited = train_test_split(X, y, 0.1f);
-    std::vector<Tensor> X_train = splited[0];
-    std::vector<Tensor> y_train = splited[1];
-    std::vector<Tensor> X_test = splited[2];
-    std::vector<Tensor> y_test = splited[3];
+    std::vector<std::vector<Array<float>>> splited = train_test_split(X, y, 0.1f);
+    std::vector<Array<float>> X_train = splited[0];
+    std::vector<Array<float>> y_train = splited[1];
+    std::vector<Array<float>> X_test = splited[2];
+    std::vector<Array<float>> y_test = splited[3];
 
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 

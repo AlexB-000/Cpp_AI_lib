@@ -1,10 +1,10 @@
 #pragma once
 #include <random>
 #include <vector>
-#include "../../Tensor/include/tensorMath.hpp"
+#include "../../Arrays/cpp_arrays.hpp"
 
-std::vector<std::vector<Tensor>> train_test_split(std::vector<Tensor> X, std::vector<Tensor> y, float test_prop=0.1){
-    std::vector<Tensor> X_train, y_train, X_test, y_test;
+std::vector<std::vector<Array<float>>> train_test_split(std::vector<Array<float>> X, std::vector<Array<float>> y, float test_prop=0.1){
+    std::vector<Array<float>> X_train, y_train, X_test, y_test;
     
     //random numbers generator
     std::random_device rd;

@@ -1,10 +1,10 @@
 #include "../../include/optimizers/GD.hpp"
 
-void GD::thread_step(Tensor* param, const Tensor* grad, const float lr) {
-    (*param) = (*param) - (*grad) * lr;
+void GD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
+    (*param) -= (*grad) * lr;
 }
 
-void GD::step(const std::vector<Tensor>& gradients, const float lr) {
+void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
     
     // uint32_t thread_count = std::thread::hardware_concurrency() - 1;
 
@@ -24,16 +24,16 @@ void GD::step(const std::vector<Tensor>& gradients, const float lr) {
     }
 }
 
-std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
-    Tensor deriv = LossDeriv;
-    std::vector<Tensor> all_grads;
+std::vector<Array<float>> GD::backpropagation(const Array<float>& LossDeriv) {
+    Array<float> deriv = LossDeriv;
+    std::vector<Array<float>> all_grads;
 
     for (int layer_idx = model->modules.size()-1; layer_idx >= 0; layer_idx--) {
         std::shared_ptr<Module> layer = model->modules[layer_idx];
 
         // std::cout << "Backpropagating through layer : " << layer << " index: " << layer_idx << "\n";
 
-        std::vector<Tensor> grad = layer->backward(deriv);
+        std::vector<Array<float>> grad = layer->backward(deriv);
 
         // std::cout << "Layer backward gradients:\n";
         // for (size_t i = 0; i < grad.size(); ++i) {
@@ -41,8 +41,8 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
         // }
         
         // Skip updating parameters that do not have gradients (non-trainable parameters)
-        // their tensor is empty so it represents the scalar 0.0f by default
-        if (grad[0].dim() > 0) {
+        // their Array<float> is empty so it represents the scalar 0.0f by default
+        if (grad[0].dim > 0) {
             all_grads.insert(all_grads.begin(), grad.begin(), grad.end()-1);
         }
         deriv = grad.back();
@@ -50,31 +50,31 @@ std::vector<Tensor> GD::backpropagation(const Tensor& LossDeriv) {
     return all_grads;
 }
 
-void GD::train_oneSample(const Tensor* input, const Tensor* target, std::vector<Tensor>* gradient, float* loss_value) {
-    Tensor output = model->forward(*input);
+void GD::train_oneSample(const Array<float>* input, const Array<float>* target, std::vector<Array<float>>* gradient, float* loss_value) {
+    Array<float> output = model->forward(*input);
     
     *loss_value += loss->compute(output, *target);
 
-    Tensor lossGrad = loss->get_gradient();
+    Array<float> lossGrad = loss->get_gradient();
 
-    std::vector<Tensor> grad = backpropagation(lossGrad);
+    std::vector<Array<float>> grad = backpropagation(lossGrad);
 
     if (gradient->size() != 0) {
         for (size_t p = 0; p < grad.size(); ++p) {
-            (*gradient)[p] = (*gradient)[p] + grad[p];
+            (*gradient)[p] += grad[p];
         }
     } else {
         *gradient = grad;
     }
 }
 
-void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
+void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
     bool show_progress, bool show_batch_progress, bool flat_out) {
     
     unsigned int num_samples = X.size();
 
-    std::vector<Tensor> batch_gradient;
+    std::vector<Array<float>> batch_gradient;
 
     uint32_t max_thread_count;
     if (flat_out) max_thread_count = std::thread::hardware_concurrency();
@@ -127,7 +127,7 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
         std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
         if (show_progress) {
-            std::vector<Tensor*> params = model->get_parameters();
+            std::vector<Array<float>*> params = model->get_parameters();
             std::cout << "Epoch Parameters:\n";
             for (auto param : params) {
                 param->show();
@@ -140,7 +140,7 @@ void GD::train(const std::vector<Tensor>& X, const std::vector<Tensor>& y,
 void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
     bool show_progress, bool show_batch_progress, bool flat_out) {
     
-    std::vector<Tensor> batch_gradient;
+    std::vector<Array<float>> batch_gradient;
 
     uint32_t max_thread_count;
     if (flat_out) max_thread_count = std::thread::hardware_concurrency();
@@ -154,7 +154,7 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
         for (unsigned int i = 0; i < data_loader.batch_quantity(); i++) {
             batch_gradient.clear();
 
-            std::vector<std::vector<Tensor>> batch = data_loader.get_batch(i);
+            std::vector<std::vector<Array<float>>> batch = data_loader.get_batch(i);
             
             unsigned int batch_size = batch.size();
 
@@ -196,7 +196,7 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
         std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
         if (show_progress) {
-            std::vector<Tensor*> params = model->get_parameters();
+            std::vector<Array<float>*> params = model->get_parameters();
             std::cout << "Epoch Parameters:\n";
             for (auto param : params) {
                 param->show();

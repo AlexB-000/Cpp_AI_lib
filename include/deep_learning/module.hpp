@@ -1,9 +1,9 @@
 #pragma once
-#include "../../Tensor/include/tensorMath.hpp"
+#include "../../Arrays/cpp_arrays.hpp"
 
 class Module{
 public:
-	virtual std::vector< Tensor* > get_parameters() = 0;
-    virtual Tensor forward(const Tensor& input) = 0;
-    virtual std::vector< Tensor > backward(const Tensor& prevDeriv) = 0;
+	virtual std::vector< Array<float>* > get_parameters() = 0;
+    virtual Array<float> forward(const Array<float>& input) = 0;
+    virtual std::vector< Array<float> > backward(const Array<float>& prevDeriv) = 0;
 };

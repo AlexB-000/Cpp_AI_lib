@@ -1,24 +1,24 @@
 #pragma once
 #include <random>
-#include "../../Tensor/include/tensorMath.hpp"
+#include "../../Arrays/cpp_arrays.hpp"
 #include "module.hpp"
 
 class Linear: public Module{
 public:
     unsigned int inputSize;
     unsigned int outputSize;
-    Tensor prevInput;
-    Tensor biases;
-    Tensor weights;
+    Array<float> prevInput;
+    Array<float> biases;
+    Array<float> weights;
 
     ~Linear() = default;
 
     Linear(unsigned int inInputSize, unsigned int inOutputSize, float initWeightScale = 1.0f, float initBiasScale = 1.0f) :
         inputSize(inInputSize), outputSize(inOutputSize) {
 
-        biases = Tensor({outputSize}, 0.0);
-        weights = Tensor({outputSize, inputSize});
-        prevInput = Tensor(inputSize);
+        biases = Array<float>({outputSize}, 0.0);
+        weights = Array<float>({outputSize, inputSize});
+        prevInput = Array<float>(inputSize);
 
         // Initialize weights with small random values
         std::random_device rd;
@@ -38,7 +38,7 @@ public:
             biases[i] = bias_dist(gen);
         }
     }
-	std::vector< Tensor* > get_parameters() override;
-    Tensor forward(const Tensor& input) override;
-    std::vector< Tensor > backward(const Tensor& prevDeriv) override;
+	std::vector< Array<float>* > get_parameters() override;
+    Array<float> forward(const Array<float>& input) override;
+    std::vector< Array<float> > backward(const Array<float>& prevDeriv) override;
 };
