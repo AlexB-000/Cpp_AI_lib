@@ -24,12 +24,12 @@ void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
     }
 }
 
-std::vector<Array<float>> GD::backpropagation(const Array<float>& LossDeriv) {
+std::vector<Array<float>> GD::backpropagation(Network* _model, const Array<float>& LossDeriv) {
     Array<float> deriv = LossDeriv;
     std::vector<Array<float>> all_grads;
 
-    for (int layer_idx = model->modules.size()-1; layer_idx >= 0; layer_idx--) {
-        std::shared_ptr<Module> layer = model->modules[layer_idx];
+    for (int layer_idx = _model->modules.size()-1; layer_idx >= 0; layer_idx--) {
+        std::shared_ptr<Module> layer = _model->modules[layer_idx];
 
         // std::cout << "Backpropagating through layer : " << layer << " index: " << layer_idx << "\n";
 
@@ -50,14 +50,14 @@ std::vector<Array<float>> GD::backpropagation(const Array<float>& LossDeriv) {
     return all_grads;
 }
 
-void GD::train_oneSample(const Array<float>* input, const Array<float>* target, std::vector<Array<float>>* gradient, float* loss_value) {
-    Array<float> output = model->forward(*input);
+void GD::train_oneSample(Network* _model, const Array<float>* input, const Array<float>* target, std::vector<Array<float>>* gradient, float* loss_value) {
+    Array<float> output = _model->forward(*input);
     
     *loss_value += loss->compute(output, *target);
 
     Array<float> lossGrad = loss->get_gradient();
 
-    std::vector<Array<float>> grad = backpropagation(lossGrad);
+    std::vector<Array<float>> grad = backpropagation(_model, lossGrad);
 
     if (gradient->size() != 0) {
         for (size_t p = 0; p < grad.size(); ++p) {
@@ -70,8 +70,9 @@ void GD::train_oneSample(const Array<float>* input, const Array<float>* target, 
 
 void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
-    bool show_progress, bool show_batch_progress, bool flat_out) {
+    bool show_progress, bool show_batch_progress, bool multithreading, bool flat_out) {
     
+    model->train_mode();
     unsigned int num_samples = X.size();
 
     std::vector<Array<float>> batch_gradient;
@@ -79,6 +80,7 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
     uint32_t max_thread_count;
     if (flat_out) max_thread_count = std::thread::hardware_concurrency();
     else max_thread_count = std::thread::hardware_concurrency() - 1;
+    if (!multithreading) max_thread_count = 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
@@ -89,6 +91,7 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
             batch_gradient.clear();
 
             unsigned int actual_batch_size = std::min(batch_size, num_samples - i);
+            const float grad_coeff = 1.0f / static_cast<float>(actual_batch_size);
 
             uint32_t thread_count;
             if (actual_batch_size < max_thread_count) {
@@ -107,8 +110,8 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
                 }
                 const unsigned int data_start_index = i + t * samples_per_thread;
                 const unsigned int count = std::min(samples_per_thread, actual_batch_size - t * samples_per_thread);
-                threads.push_back(std::thread(&GD::train_oneThread, this,
-                    &X, &y, &batch_gradient, &epoch_loss, 1.0f / static_cast<float>(actual_batch_size),
+                threads.push_back(std::thread(&GD::train_oneThread, this, *model,
+                    &X, &y, &batch_gradient, &epoch_loss, grad_coeff,
                     t, data_start_index, count));
             }
             for (std::thread& t : threads) {
@@ -134,17 +137,20 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
             }
         }
     }
+    model->eval_mode();
 }
 
 
 void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
-    bool show_progress, bool show_batch_progress, bool flat_out) {
+    bool show_progress, bool show_batch_progress, bool multithreading, bool flat_out) {
     
+    model->train_mode();
     std::vector<Array<float>> batch_gradient;
 
     uint32_t max_thread_count;
     if (flat_out) max_thread_count = std::thread::hardware_concurrency();
     else max_thread_count = std::thread::hardware_concurrency() - 1;
+    if (!multithreading) max_thread_count = 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
         std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
@@ -157,6 +163,8 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             std::vector<std::vector<Array<float>>> batch = data_loader.get_batch(i);
             
             unsigned int batch_size = batch.size();
+
+            const float grad_coeff = 1.0f / static_cast<float>(batch_size);
 
             uint32_t thread_count;
             if (batch_size < max_thread_count) {
@@ -176,8 +184,8 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
                 unsigned int start_index = t * samples_per_thread;
                 unsigned int count = std::min(samples_per_thread, batch_size - start_index);
                 
-                threads.push_back(std::thread(&GD::train_oneThread_batch, this,
-                    &batch, &batch_gradient, &epoch_loss, 1.0f / static_cast<float>(batch_size),
+                threads.push_back(std::thread(&GD::train_oneThread_batch, this, *model,
+                    &batch, &batch_gradient, &epoch_loss, grad_coeff,
                     t, start_index, count));
             }
             for (auto& t : threads) {
@@ -203,4 +211,5 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             }
         }
     }
+    model->eval_mode();
 }

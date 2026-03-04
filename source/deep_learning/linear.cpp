@@ -7,7 +7,7 @@ Array<float> Linear::forward(const Array<float>& input){
     if (input.shape[0] != inputSize) {
         throw std::invalid_argument("In Linear forward : Input size does not match the expected size.");
     }
-    prevInput = input;
+    if(training) prevInput = input;
     return matmul(weights, input) + biases;
 }
 
@@ -27,8 +27,4 @@ std::vector<Array<float>> Linear::backward(const Array<float>& prevDeriv){
         }
     }
     return {d_weights, d_biases, deriv};
-}
-
-std::vector<Array<float>*> Linear::get_parameters(){
-    return {&weights, &biases};
 }

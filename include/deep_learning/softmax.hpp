@@ -13,6 +13,10 @@ public:
 
     Softmax(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
 
+    std::shared_ptr<Module> copy() const override {
+        return std::make_shared<Softmax>(*this);
+    }
+
 	std::vector< Array<float>* > get_parameters() override { return {}; };
 
     Array<float> forward(const Array<float>& input){
@@ -23,7 +27,7 @@ public:
             throw std::invalid_argument("In Softmax forward : Input size does not match the expected size.");
         }
 
-        inputCache = input;
+        if(training) inputCache = input;
         Array<float> output {input.shape};
 
         // find max

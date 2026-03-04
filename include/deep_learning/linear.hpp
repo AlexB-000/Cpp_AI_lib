@@ -38,7 +38,13 @@ public:
             biases[i] = bias_dist(gen);
         }
     }
-	std::vector< Array<float>* > get_parameters() override;
+	std::vector< Array<float>* > get_parameters() override {
+        return {&weights, &biases};
+    }
     Array<float> forward(const Array<float>& input) override;
     std::vector< Array<float> > backward(const Array<float>& prevDeriv) override;
+
+    std::shared_ptr<Module> copy() const override {
+        return std::make_shared<Linear>(*this);
+    }
 };
