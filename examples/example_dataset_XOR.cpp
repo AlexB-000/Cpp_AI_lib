@@ -44,15 +44,15 @@ int main(int argc, char* argv[]){
     }
 
     Network net(2, 1);
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.5f, 0.5f);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.0f, 0.5f, 0.0f, 0.5f);
     net.stackLayer(layer1);
     std::shared_ptr<Tanh> activation1 = std::make_shared<Tanh>(5);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 5, 0.5f, 0.5f);
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 5, 0.0f, 0.5f, 0.0f, 0.5f);
     net.stackLayer(layer2);
     std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(5);
     net.stackLayer(activation2);
-    std::shared_ptr<Linear> layer3 = std::make_shared<Linear>(5, 1, 0.5f, 0.5f);
+    std::shared_ptr<Linear> layer3 = std::make_shared<Linear>(5, 1, 0.0f, 0.5f, 0.0f, 0.5f);
     net.stackLayer(layer3);
     std::shared_ptr<Tanh> activation3 = std::make_shared<Tanh>(1);
     net.stackLayer(activation3);

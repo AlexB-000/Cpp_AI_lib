@@ -13,7 +13,8 @@ public:
 
     ~Linear() = default;
 
-    Linear(unsigned int inInputSize, unsigned int inOutputSize, float initWeightScale = 1.0f, float initBiasScale = 1.0f) :
+    Linear(unsigned int inInputSize, unsigned int inOutputSize, float weightMean = 0.0f, float weightStdDev = 1.0f,
+           float biasMean = 0.0f, float biasStdDev = 1.0f) :
         inputSize(inInputSize), outputSize(inOutputSize) {
 
         biases = Array<float>({outputSize}, 0.0);
@@ -23,7 +24,7 @@ public:
         // Initialize weights with small random values
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::normal_distribution<float> weight_dist(-initWeightScale, initWeightScale);
+        std::normal_distribution<float> weight_dist(weightMean, weightStdDev);
 
         for (unsigned int i = 0; i < outputSize; ++i) {
             for (unsigned int j = 0; j < inputSize; ++j) {
@@ -32,7 +33,7 @@ public:
         }
 
         // Initialize biases
-        std::normal_distribution<float> bias_dist(-initBiasScale, initBiasScale);
+        std::normal_distribution<float> bias_dist(biasMean, biasStdDev);
 
         for (unsigned int i = 0; i < outputSize; ++i) {
             biases[i] = bias_dist(gen);
