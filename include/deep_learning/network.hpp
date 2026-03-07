@@ -4,7 +4,6 @@
 #include "module.hpp"
 
 class Network: public Module{
-    Network& operator=(const Network&);
 public:
     std::vector<std::shared_ptr<Module>> modules;
     // unsigned int inputSize;
@@ -22,6 +21,15 @@ public:
             std::vector< Array<float>* > layerParams = modules.back()->get_parameters();
             parameters.insert(parameters.end(), layerParams.begin(), layerParams.end());
         }
+    }
+
+    Network& operator=(const Network& other){
+        for (std::shared_ptr<Module> module : other.modules) {
+            modules.push_back(module->copy());
+            std::vector< Array<float>* > layerParams = modules.back()->get_parameters();
+            parameters.insert(parameters.end(), layerParams.begin(), layerParams.end());
+        }
+        return (*this);
     }
 
     std::shared_ptr<Module> copy() const override {

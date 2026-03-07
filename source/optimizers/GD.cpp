@@ -70,7 +70,7 @@ void GD::train_oneSample(Network* _model, const Array<float>* input, const Array
 
 void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
-    bool show_progress, bool show_batch_progress, bool multithreading, bool flat_out) {
+    short display_mode, bool multithreading, bool flat_out) {
     
     model->train_mode();
     unsigned int num_samples = X.size();
@@ -83,8 +83,9 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
     if (!multithreading) max_thread_count = 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
-        std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
-
+        if (display_mode) {
+            std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
+        }
         float epoch_loss = 0.0;
 
         for (unsigned int i = 0; i < num_samples; i += batch_size) {
@@ -120,20 +121,22 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
             
             step(batch_gradient, lr);
 
-            if (show_batch_progress) {
+            if (display_mode == 3) {
                 std::cout << "  batch completed " << (i / batch_size) + 1 << "/" << (num_samples / batch_size + 1) << "\n";
             }
         }
 
         epoch_loss /= static_cast<float>(num_samples);
 
-        std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
+        if (display_mode) {
+            std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
-        if (show_progress) {
-            std::vector<Array<float>*> params = model->get_parameters();
-            std::cout << "Epoch Parameters:\n";
-            for (auto param : params) {
-                param->show();
+            if (display_mode == 2) {
+                std::vector<Array<float>*> params = model->get_parameters();
+                std::cout << "Epoch Parameters:\n";
+                for (auto param : params) {
+                    param->show();
+                }
             }
         }
     }
@@ -142,7 +145,7 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
 
 
 void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
-    bool show_progress, bool show_batch_progress, bool multithreading, bool flat_out) {
+    short display_mode, bool multithreading, bool flat_out) {
     
     model->train_mode();
     std::vector<Array<float>> batch_gradient;
@@ -153,7 +156,9 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
     if (!multithreading) max_thread_count = 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
-        std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
+        if (display_mode) {
+            std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
+        }
 
         float epoch_loss = 0.0;
 
@@ -194,20 +199,22 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
 
             step(batch_gradient, lr);
 
-            if (show_batch_progress) {
+            if (display_mode == 3) {
                 std::cout << "  batch completed " << i + 1 << "/" << data_loader.batch_quantity() << "\n";
             }
         }
 
         epoch_loss /= static_cast<float>(data_loader.dataset_size());
 
-        std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
+        if (display_mode) {
+            std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
 
-        if (show_progress) {
-            std::vector<Array<float>*> params = model->get_parameters();
-            std::cout << "Epoch Parameters:\n";
-            for (auto param : params) {
-                param->show();
+            if (display_mode == 2) {
+                std::vector<Array<float>*> params = model->get_parameters();
+                std::cout << "Epoch Parameters:\n";
+                for (auto param : params) {
+                    param->show();
+                }
             }
         }
     }

@@ -87,7 +87,7 @@ int main(){
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 50, 100, 0.1f, true, false, false);
+    optimizer.train(X_train, y_train, 50, 100, 0.1f, 2, false);
 
     std::cout << "## Training completed.\n";
 

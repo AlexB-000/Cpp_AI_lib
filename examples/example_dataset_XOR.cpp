@@ -95,7 +95,7 @@ int main(int argc, char* argv[]){
     std::cout << "## Starting training...\n";
 
     DataLoader train_dataloader (&train_dataset, 100);
-    optimizer.train(train_dataloader, 50, 1.0f, false, false, true);
+    optimizer.train(train_dataloader, 50, 1.0f, 1, true);
 
     std::cout << "## Training completed.\n";
 

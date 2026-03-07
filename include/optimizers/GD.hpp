@@ -71,8 +71,8 @@ public:
 
     void train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
         const unsigned int epochs=10, unsigned int batch_size=100, const float lr=0.01f,
-        bool show_progress=false, bool show_batch_progress=false, bool multithreading=true, bool flat_out=false);
+        short display_mode=0, bool multithreading=true, bool flat_out=false);
 
     void train(DataLoader& dataloader, const unsigned int epochs=10, const float lr=0.01f,
-        bool show_progress=false, bool show_batch_progress=false, bool multithreading=true, bool flat_out=false);
+        short display_mode=0, bool multithreading=true, bool flat_out=false);
 };
