@@ -7,16 +7,16 @@ class Network: public Module{
     Network& operator=(const Network&);
 public:
     std::vector<std::shared_ptr<Module>> modules;
-    unsigned int inputSize;
-    unsigned int outputSize;
+    // unsigned int inputSize;
+    // unsigned int outputSize;
     //std::vector< Array<float> > layerInputs;
     std::vector< Array<float> * > parameters;
 
     ~Network() = default;
 	
-	Network(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
+	Network() = default;
 
-    Network(const Network& other) : inputSize(other.inputSize), outputSize(other.outputSize) {
+    Network(const Network& other) {
         for (std::shared_ptr<Module> module : other.modules) {
             modules.push_back(module->copy());
             std::vector< Array<float>* > layerParams = modules.back()->get_parameters();

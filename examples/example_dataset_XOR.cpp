@@ -43,7 +43,7 @@ int main(int argc, char* argv[]){
         loading = true;
     }
 
-    Network net(2, 1);
+    Network net;
     std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.0f, 0.5f, 0.0f, 0.5f);
     net.stackLayer(layer1);
     std::shared_ptr<Tanh> activation1 = std::make_shared<Tanh>(5);
