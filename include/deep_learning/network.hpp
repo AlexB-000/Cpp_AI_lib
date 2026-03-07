@@ -16,6 +16,8 @@ public:
 	Network() = default;
 
     Network(const Network& other) {
+        modules.clear();
+        parameters.clear();
         for (std::shared_ptr<Module> module : other.modules) {
             modules.push_back(module->copy());
             std::vector< Array<float>* > layerParams = modules.back()->get_parameters();
@@ -24,6 +26,8 @@ public:
     }
 
     Network& operator=(const Network& other){
+        modules.clear();
+        parameters.clear();
         for (std::shared_ptr<Module> module : other.modules) {
             modules.push_back(module->copy());
             std::vector< Array<float>* > layerParams = modules.back()->get_parameters();
