@@ -9,7 +9,7 @@
 #include "../include/deep_learning/tanh.hpp"
 #include "../include/evaluation.hpp"
 
-std::vector<std::vector<Array<float>>> generate_data(uint size){
+std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
     std::vector<Array<float>> data;
     std::vector<Array<float>> target;
 
@@ -18,7 +18,7 @@ std::vector<std::vector<Array<float>>> generate_data(uint size){
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, 1);
 
-    for (uint i=0; i<size; i++){
+    for (unsigned int i=0; i<size; i++){
         float value1 = dis(gen);
         float value2 = dis(gen);
         data.push_back(Array<float>{{2}, {value1, value2}});

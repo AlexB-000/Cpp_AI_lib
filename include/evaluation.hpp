@@ -20,7 +20,7 @@ void bin_accuracy_thread(Network* net, const std::vector<Array<float>>* inputs, 
 float bin_accuracy(Network& net, const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     bool multithreading=true){
     
-    uint correct = 0;
+    unsigned int correct = 0;
     std::vector<short> thread_results(X.size());
     std::vector<std::thread> threads;
 
@@ -49,7 +49,7 @@ void bin_accuracy_thread_dataset(Network* net, const Dataset* dataset,
 }
 
 float bin_accuracy(Network& net, const Dataset& dataset, bool multithreading=true){
-    uint correct = 0;
+    unsigned int correct = 0;
     std::vector<short> thread_results(dataset.size());
     std::vector<std::thread> threads;
 
@@ -98,7 +98,7 @@ void multiclass_accuracy_thread(Network* net, const std::vector<Array<float>>* i
 float multiclass_accuracy(Network& net, const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     bool multithreading=true){
     
-    uint correct = 0;
+    unsigned int correct = 0;
     std::vector<short> thread_results(X.size());
     std::vector<std::thread> threads;
 
@@ -127,7 +127,7 @@ void multiclass_accuracy_thread_dataset(Network* net, const Dataset* dataset,
 }
 
 float multiclass_accuracy(Network& net, const Dataset& dataset, bool multithreading=true){
-    uint correct = 0;
+    unsigned int correct = 0;
     std::vector<short> thread_results(dataset.size());
     std::vector<std::thread> threads;
 

@@ -10,11 +10,11 @@ std::vector<std::vector<Array<float>>> train_test_split(std::vector<Array<float>
     std::random_device rd;
     std::mt19937 gen(rd());
     
-    uint test_size = X.size() * test_prop;
-    for (uint i = 0; i<test_size; i++){
-        uint data_size = X.size();
+    unsigned int test_size = X.size() * test_prop;
+    for (unsigned int i = 0; i<test_size; i++){
+        unsigned int data_size = X.size();
         std::uniform_int_distribution<> dis(0, data_size - 1);
-        uint idx = dis(gen);
+        unsigned int idx = dis(gen);
         X_test.push_back(X[idx]);
         y_test.push_back(y[idx]);
 

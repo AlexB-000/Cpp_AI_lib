@@ -6,7 +6,7 @@
 #include "../include/optimizers/GD.hpp"
 #include "../include/loss/MSE_Loss.hpp"
 
-std::vector<std::vector<Array<float>>> generate_data(uint size){
+std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
     std::vector<Array<float>> data;
     std::vector<Array<float>> target;
 
@@ -15,7 +15,7 @@ std::vector<std::vector<Array<float>>> generate_data(uint size){
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0, 10);
 
-    for (uint i=0; i<size; i++){
+    for (unsigned int i=0; i<size; i++){
         float value = dis(gen)/10.0f;
         data.push_back(Array<float>{{1}, {value}});
         target.push_back(Array<float>{{1}, {value*2 + 1}});
