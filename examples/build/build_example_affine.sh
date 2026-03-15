@@ -1,1 +1,1 @@
-g++ -O3 ../example_affine.cpp ../../bin/linear.o ../../bin/optimizers/GD.o ../../bin/network.o -o ../bin/example_affine
+icpx -O3 ../example_affine.cpp ../../bin/linear.o ../../bin/optimizers/GD.o ../../bin/network.o -o ../bin/example_affine

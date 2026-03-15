@@ -1,1 +1,1 @@
-g++ -O3 ../example_XOR.cpp ../../bin/linear.o ../../bin/optimizers/GD.o ../../bin/network.o -o ../bin/example_XOR
+icpx -O3 ../example_XOR.cpp ../../bin/linear.o ../../bin/optimizers/GD.o ../../bin/network.o -o ../bin/example_XOR
