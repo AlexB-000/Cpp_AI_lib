@@ -18,7 +18,7 @@ public:
 
 	std::vector< Array<float>* > get_parameters() override { return {}; };
 
-    Array<float> forward(const Array<float>& input){
+    Array<float> forward(const Array<float>& input) override {
         if (input.dim != 1){
             throw std::invalid_argument("In ReLU forward : Input must be a 1D array.");
         }
