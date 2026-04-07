@@ -1,1 +1,0 @@
-icpx -O3 ../example_dataset_XOR.cpp ../../bin/linear.o ../../bin/optimizers/GD.o ../../bin/network.o -o ../bin/example_dataset_XOR
