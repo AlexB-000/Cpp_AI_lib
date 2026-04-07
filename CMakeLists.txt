@@ -10,19 +10,7 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-add_library(arrays INTERFACE)
-target_sources(arrays
-INTERFACE
-    FILE_SET HEADERS
-    BASE_DIRS
-        ${CMAKE_CURRENT_LIST_DIR}/Arrays
-        ${CMAKE_CURRENT_LIST_DIR}/Arrays/include
-    FILES
-        ${CMAKE_CURRENT_LIST_DIR}/Arrays/include/array_math.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/Arrays/include/array.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/Arrays/spp_arrays.hpp
-)
-target_compile_features(arrays INTERFACE cxx_std_17)
+add_subdirectory(Arrays)
 
 add_library(CppAI STATIC)
 target_sources(CppAI

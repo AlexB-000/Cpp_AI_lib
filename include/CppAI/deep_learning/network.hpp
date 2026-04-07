@@ -1,6 +1,6 @@
 #pragma once
 #include <fstream>
-#include "../../Arrays/cpp_arrays.hpp"
+#include "Arrays/cpp_arrays.hpp"
 #include "module.hpp"
 
 class Network: public Module{

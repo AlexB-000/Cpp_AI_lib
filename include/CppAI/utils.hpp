@@ -1,5 +1,5 @@
 #pragma once
-#include "../Arrays/cpp_arrays.hpp"
+#include "Arrays/cpp_arrays.hpp"
 
 template<typename T>
 T max(const Array<T>& arr) {

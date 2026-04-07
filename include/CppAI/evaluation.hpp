@@ -1,6 +1,6 @@
 #pragma once
 #include <thread>
-#include "../Arrays/cpp_arrays.hpp"
+#include "Arrays/cpp_arrays.hpp"
 #include "Dataset.hpp"
 #include "./deep_learning/network.hpp"
 

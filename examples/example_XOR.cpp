@@ -1,13 +1,13 @@
 #include <iostream>
 #include <random>
-#include "../include/preprocessing/train_test_split.hpp"
-#include "../include/deep_learning/network.hpp"
-#include "../include/deep_learning/linear.hpp"
-#include "../include/optimizers/GD.hpp"
-#include "../include/loss/MSE_Loss.hpp"
-#include "../include/deep_learning/ReLU.hpp"
-#include "../include/deep_learning/tanh.hpp"
-#include "../include/evaluation.hpp"
+#include "CppAI/preprocessing/train_test_split.hpp"
+#include "CppAI/deep_learning/network.hpp"
+#include "CppAI/deep_learning/linear.hpp"
+#include "CppAI/optimizers/GD.hpp"
+#include "CppAI/loss/MSE_Loss.hpp"
+#include "CppAI/deep_learning/ReLU.hpp"
+#include "CppAI/deep_learning/tanh.hpp"
+#include "CppAI/evaluation.hpp"
 
 std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
     std::vector<Array<float>> data;

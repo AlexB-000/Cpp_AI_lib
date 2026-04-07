@@ -1,6 +1,6 @@
 #include <iostream>
 #include <random>
-#include "../Cpp_AI.hpp"
+#include "CppAI/Cpp_AI.hpp"
 
 std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
     std::vector<Array<float>> data;

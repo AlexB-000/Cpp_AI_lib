@@ -1,4 +1,4 @@
-#include "../../include/optimizers/GD.hpp"
+#include "CppAI/optimizers/GD.hpp"
 
 void GD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
     (*param) -= (*grad) * lr;

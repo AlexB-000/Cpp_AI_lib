@@ -1,6 +1,6 @@
 #pragma once
 #include <random>
-#include "../../Arrays/cpp_arrays.hpp"
+#include "Arrays/cpp_arrays.hpp"
 #include "module.hpp"
 
 class Linear: public Module{

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "../../Arrays/cpp_arrays.hpp"
+#include "Arrays/cpp_arrays.hpp"
 
 class Loss {
 protected:

@@ -1,4 +1,4 @@
-#include "../../include/deep_learning/linear.hpp"
+#include "CppAI/deep_learning/linear.hpp"
 
 Array<float> Linear::forward(const Array<float>& input){
     if (input.dim != 1){
