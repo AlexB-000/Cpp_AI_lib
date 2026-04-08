@@ -7,7 +7,7 @@ class Softmax: public Module{
 public:
     unsigned int inputSize;
     unsigned int outputSize;
-    Array<float> inputCache;
+    Array<float> outputCache;
 
     ~Softmax() = default;
     Softmax(unsigned int size) : inputSize(size), outputSize(size) {}
@@ -27,7 +27,6 @@ public:
             throw std::invalid_argument("In Softmax forward : Input size does not match the expected size.");
         }
 
-        if(training) inputCache = input;
         Array<float> output {input.shape};
 
         // find max
@@ -44,7 +43,7 @@ public:
         for (unsigned int i = 0; i < input.shape[0]; ++i) {
             output[i] /= sum;
         }
-
+        if (training) outputCache = output;
         return output;
     }
 
@@ -56,9 +55,13 @@ public:
             throw std::invalid_argument("In Softmax backward : Previous derivative size does not match the expected output size.");
         }
 
-        Array<float> deriv{prevDeriv.shape};
-        for (uint32_t i=0; i < deriv.shape[0]; i++){
-            deriv[i] = prevDeriv[i]; // Placeholder, proper softmax derivative implementation needed
+        Array<float> deriv{prevDeriv.shape, 0.0f};
+        for (uint32_t k=0; k < deriv.shape[0]; k++){
+            for (uint32_t i=0; i < deriv.shape[0]; i++){
+                bool delta = 0.0f;
+                if (i == k) delta = 1.0f;
+                deriv[k] += prevDeriv[i] * outputCache[i] * (delta - outputCache[k]);
+            }
         }
         return {{}, deriv};
     }

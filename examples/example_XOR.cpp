@@ -45,6 +45,11 @@ void printDecisionGraph(Network& net){
 }
 
 int main(){
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+    auto t1 = high_resolution_clock::now();
+
     Network net;
     std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.0f, 0.5f, 0.0f, 0.5f);
     net.stackLayer(layer1);
@@ -106,6 +111,13 @@ int main(){
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);
+
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> exe_time = t2 - t1;
+
+    std::cout << "Execution time: " << exe_time.count() << "ms\n";
 
     return 0;
 }
