@@ -13,8 +13,8 @@ public:
 
     ~Linear() = default;
 
-    Linear(unsigned int inInputSize, unsigned int inOutputSize, float weightMean = 0.0f, float weightStdDev = 1.0f,
-           float biasMean = 0.0f, float biasStdDev = 1.0f) :
+    Linear(unsigned int inInputSize, unsigned int inOutputSize, float weightMean = 0.0f, float weightStdDev = 0.01f,
+           float biasMean = 0.0f, float biasStdDev = 0.01f) :
         inputSize(inInputSize), outputSize(inOutputSize) {
 
         biases = Array<float>({outputSize}, 0.0);
