@@ -7,7 +7,7 @@ class CrossEntropyLoss: public Loss{
 public:
     ~CrossEntropyLoss() = default;
 
-    CrossEntropyLoss(float epsilon=1e-9f) : Loss(1), _epsilon(epsilon) {}
+    CrossEntropyLoss(int size, float epsilon=1e-9f) : Loss(size), _epsilon(epsilon) {}
 
 	float compute(const Array<float>& predicted, const Array<float>& target) override {
         if (predicted.shape != target.shape) {
