@@ -18,6 +18,7 @@
 #include "loss/L1Loss.hpp"
 #include "loss/BCE_Loss.hpp"
 #include "loss/BCEWithLogitsLoss.hpp"
+#include "loss/CrossEntropyLoss.hpp"
 
 #include "DataLoader.hpp"
 #include "Dataset.hpp"
