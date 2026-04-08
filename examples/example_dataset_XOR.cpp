@@ -105,10 +105,10 @@ int main(int argc, char* argv[]){
         param->show();
     }
 
-    float train_accuracy = bin_accuracy(net, X_train, y_train);
+    float train_accuracy = ClassMetrics::bin_accuracy(net, X_train, y_train, true, true);
     std::cout << "## Train Accuracy: " << train_accuracy * 100.0f << "%\n";
 
-    float test_accuracy = bin_accuracy(net, X_test, y_test);
+    float test_accuracy = ClassMetrics::bin_accuracy(net, X_test, y_test, true, true);
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);

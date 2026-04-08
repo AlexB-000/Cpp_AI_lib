@@ -8,10 +8,16 @@
 #include "deep_learning/network.hpp"
 #include "deep_learning/linear.hpp"
 #include "deep_learning/ReLU.hpp"
-#include "deep_learning/tanh.hpp"
+
+#include "activation/tanh.hpp"
+#include "activation/sigmoid.hpp"
+#include "activation/softmax.hpp"
 
 #include "optimizers/GD.hpp"
 #include "loss/MSE_Loss.hpp"
+#include "loss/L1Loss.hpp"
+#include "loss/BCE_Loss.hpp"
+#include "loss/BCEWithLogitsLoss.hpp"
 
 #include "DataLoader.hpp"
 #include "Dataset.hpp"

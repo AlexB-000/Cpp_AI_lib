@@ -1,5 +1,5 @@
 #pragma once
-#include "module.hpp"
+#include "CppAI/deep_learning/module.hpp"
 #include <math.h>
 
 class Tanh: public Module{

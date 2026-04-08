@@ -4,9 +4,9 @@
 #include "CppAI/deep_learning/network.hpp"
 #include "CppAI/deep_learning/linear.hpp"
 #include "CppAI/optimizers/GD.hpp"
-#include "CppAI/loss/MSE_Loss.hpp"
+#include "CppAI/loss/BCEWithLogitsLoss.hpp"
 #include "CppAI/deep_learning/ReLU.hpp"
-#include "CppAI/deep_learning/tanh.hpp"
+#include "CppAI/activation/sigmoid.hpp"
 #include "CppAI/evaluation.hpp"
 
 std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
@@ -23,7 +23,7 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
         float value2 = dis(gen);
         data.push_back(Array<float>{{2}, {value1, value2}});
         if (value1 && value2 || (!value1 && !value2))
-            target.push_back(Array<float>{{1}, {-1.0f}});
+            target.push_back(Array<float>{{1}, {0.0f}});
         else
             target.push_back(Array<float>{{1}, {1.0f}});
     }
@@ -48,12 +48,10 @@ int main(){
     Network net;
     std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.0f, 0.5f, 0.0f, 0.5f);
     net.stackLayer(layer1);
-    std::shared_ptr<Tanh> activation1 = std::make_shared<Tanh>(5);
+    std::shared_ptr<Sigmoid> activation1 = std::make_shared<Sigmoid>(5);
     net.stackLayer(activation1);
     std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 1, 0.0f, 0.5f, 0.0f, 0.5f);
     net.stackLayer(layer2);
-    std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(1);
-    net.stackLayer(activation2);
 
     std::cout << "## Network created.\n";
 
@@ -82,14 +80,18 @@ int main(){
 
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
-    MSELoss loss {1};
+    BCEWithLogitsLoss loss;
     GD optimizer(&net, &loss);
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 50, 100, 0.1f, 2, false);
+    optimizer.train(X_train, y_train, 50, 100, 1.0f, 2, false);
 
     std::cout << "## Training completed.\n";
+
+
+    std::shared_ptr<Sigmoid> activation2 = std::make_shared<Sigmoid>(1);
+    net.stackLayer(activation2);
 
     params = net.get_parameters();
     std::cout << "Learned Parameters:\n";
@@ -97,10 +99,10 @@ int main(){
         param->show();
     }
 
-    float train_accuracy = bin_accuracy(net, X_train, y_train);
+    float train_accuracy = ClassMetrics::bin_accuracy(net, X_train, y_train);
     std::cout << "## Train Accuracy: " << train_accuracy * 100.0f << "%\n";
 
-    float test_accuracy = bin_accuracy(net, X_test, y_test);
+    float test_accuracy = ClassMetrics::bin_accuracy(net, X_test, y_test);
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);
