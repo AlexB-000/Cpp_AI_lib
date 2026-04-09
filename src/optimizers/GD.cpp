@@ -67,10 +67,16 @@ void GD::train_oneSample(Network* _model, const Array<float>* input, const Array
         *gradient = grad;
     }
 }
-
+//MARK: train X, y
 void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
     short display_mode, bool multithreading, bool flat_out) {
+    
+    if (display_mode) {
+        std::cout << "# Starting training" << std::endl;
+    }
+    unsigned int batch_info_interval = (X.size() + batch_size - 1) / batch_size / 10;
+    if (batch_info_interval == 0) batch_info_interval = 1;
     
     model->train_mode();
     unsigned int num_samples = X.size();
@@ -83,12 +89,14 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
     if (!multithreading) max_thread_count = 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
-        if (display_mode) {
-            std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
+        if (display_mode >= 2) {
+            std::cout << "Epoch " << epoch + 1 << "/" << epochs << std::endl;
+            std::cout << std::string(30, '-') << std::endl;
         }
         float epoch_loss = 0.0;
 
         for (unsigned int i = 0; i < num_samples; i += batch_size) {
+            float batch_loss = 0.0f;
             batch_gradient.clear();
 
             unsigned int actual_batch_size = std::min(batch_size, num_samples - i);
@@ -112,7 +120,7 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
                 const unsigned int data_start_index = i + t * samples_per_thread;
                 const unsigned int count = std::min(samples_per_thread, actual_batch_size - t * samples_per_thread);
                 threads.push_back(std::thread(&GD::train_oneThread, this, *model,
-                    &X, &y, &batch_gradient, &epoch_loss, grad_coeff,
+                    &X, &y, &batch_gradient, &batch_loss, grad_coeff,
                     t, data_start_index, count));
             }
             for (std::thread& t : threads) {
@@ -121,32 +129,35 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
             
             step(batch_gradient, lr);
 
-            if (display_mode == 3) {
-                std::cout << "  batch completed " << (i / batch_size) + 1 << "/" << (num_samples / batch_size + 1) << "\n";
+            if (display_mode >= 2 && (i / batch_size) % batch_info_interval == 0) {
+                std::cout << "\tbatch completed " << (i / batch_size) + 1 << "/" << (num_samples / batch_size + 1)
+                    << "\tLoss: " << batch_loss << "\n";
             }
+            epoch_loss += batch_loss;
         }
 
         epoch_loss /= static_cast<float>(num_samples);
 
-        if (display_mode) {
-            std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
-
-            if (display_mode == 2) {
-                std::vector<Array<float>*> params = model->get_parameters();
-                std::cout << "Epoch Parameters:\n";
-                for (auto param : params) {
-                    param->show();
-                }
-            }
+        if (display_mode >= 2) {
+            std::cout << "Epoch Loss: " << epoch_loss << std::endl << std::endl;
+        } else if (display_mode == 1) {
+            std::cout << "Epoch " << epoch + 1 << "/" << epochs << "\tLoss: " << epoch_loss << std::endl;
         }
     }
     model->eval_mode();
 }
 
-
+//MARK: train dataset
 void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
     short display_mode, bool multithreading, bool flat_out) {
     
+    if (display_mode) {
+        std::cout << "# Starting training" << std::endl;
+    }
+    unsigned int batch_info_interval = (data_loader.get_dataset_size() + data_loader.get_batch_size() - 1)
+                                        / data_loader.get_batch_size() / 10;
+    if (batch_info_interval == 0) batch_info_interval = 1;
+
     model->train_mode();
     std::vector<Array<float>> batch_gradient;
 
@@ -156,13 +167,15 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
     if (!multithreading) max_thread_count = 1;
 
     for (unsigned int epoch = 0; epoch < epochs; ++epoch) {
-        if (display_mode) {
-            std::cout << "--Epoch " << epoch + 1 << "/" << epochs << "\n";
+        if (display_mode >= 2) {
+            std::cout << "Epoch " << epoch + 1 << "/" << epochs << "\n";
+            std::cout << std::string(30, '-') << std::endl;
         }
 
         float epoch_loss = 0.0;
 
-        for (unsigned int i = 0; i < data_loader.batch_quantity(); i++) {
+        for (unsigned int i = 0; i < data_loader.get_batch_quantity(); i++) {
+            float batch_loss = 0.0f;
             batch_gradient.clear();
 
             std::vector<std::vector<Array<float>>> batch = data_loader.get_batch(i);
@@ -198,24 +211,20 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             }
 
             step(batch_gradient, lr);
-
-            if (display_mode == 3) {
-                std::cout << "  batch completed " << i + 1 << "/" << data_loader.batch_quantity() << "\n";
+            
+            if (display_mode >= 2 && i % batch_info_interval == 0) {
+                std::cout << "\tbatch completed " << i + 1 << "/" << data_loader.get_batch_quantity()
+                    << "\tLoss: " << batch_loss << "\n";
             }
+            epoch_loss += batch_loss;
         }
 
-        epoch_loss /= static_cast<float>(data_loader.dataset_size());
+        epoch_loss /= static_cast<float>(data_loader.get_dataset_size());
 
-        if (display_mode) {
-            std::cout << "--Epoch completed " << epoch + 1 << "/" << epochs << ", Loss: " << epoch_loss << std::endl;
-
-            if (display_mode == 2) {
-                std::vector<Array<float>*> params = model->get_parameters();
-                std::cout << "Epoch Parameters:\n";
-                for (auto param : params) {
-                    param->show();
-                }
-            }
+        if (display_mode >= 2) {
+            std::cout << "Epoch Loss: " << epoch_loss << std::endl << std::endl;
+        } else if (display_mode == 1) {
+            std::cout << "Epoch " << epoch + 1 << "/" << epochs << "\tLoss: " << epoch_loss << std::endl;
         }
     }
     model->eval_mode();

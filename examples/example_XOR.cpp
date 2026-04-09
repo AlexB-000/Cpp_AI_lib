@@ -92,9 +92,6 @@ int main(){
 
     optimizer.train(X_train, y_train, 50, 100, 1.0f, 2, false);
 
-    std::cout << "## Training completed.\n";
-
-
     std::shared_ptr<Sigmoid> activation2 = std::make_shared<Sigmoid>(1);
     net.stackLayer(activation2);
 

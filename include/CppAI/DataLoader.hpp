@@ -13,9 +13,11 @@ public:
         nb_batches = dataset->size() / batch_size + (dataset->size() % batch_size != 0 ? 1 : 0);
     }
 
-    size_t dataset_size() const { return dataset->size(); }
+    size_t get_dataset_size() const { return dataset->size(); }
 
-    unsigned int batch_quantity() const { return nb_batches; }
+    size_t get_batch_size() const { return batch_size; }
+
+    unsigned int get_batch_quantity() const { return nb_batches; }
 
     std::vector<std::vector<Array<float>>> get_batch(unsigned int batch_num){
         std::vector<std::vector<Array<float>>> batch;

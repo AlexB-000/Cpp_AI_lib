@@ -58,8 +58,6 @@ int main(){
     MSELoss loss {1};
     GD optimizer(&net, &loss);
 
-    std::cout << "## Starting training...\n";
-
     optimizer.train(X_train, y_train, 10, 100, 0.7, 2);
 
     std::cout << "## Training completed.\n";

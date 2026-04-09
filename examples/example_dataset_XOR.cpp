@@ -92,8 +92,6 @@ int main(int argc, char* argv[]){
     MSELoss loss {1};
     GD optimizer(&net, &loss);
 
-    std::cout << "## Starting training...\n";
-
     DataLoader train_dataloader (&train_dataset, 100);
     optimizer.train(train_dataloader, 50, 1.0f, 1, true);
 
