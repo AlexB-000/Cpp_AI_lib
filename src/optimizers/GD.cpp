@@ -71,6 +71,8 @@ void GD::train_oneSample(Network* _model, const Array<float>* input, const Array
 void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
     short display_mode, bool multithreading, bool flat_out) {
+
+    std::cout << std::fixed << std::setprecision(5);
     
     if (display_mode) {
         std::cout << "# Starting training" << std::endl;
@@ -150,6 +152,8 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
 //MARK: train dataset
 void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
     short display_mode, bool multithreading, bool flat_out) {
+
+    std::cout << std::fixed << std::setprecision(5);
     
     if (display_mode) {
         std::cout << "# Starting training" << std::endl;
