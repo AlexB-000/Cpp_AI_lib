@@ -3,12 +3,17 @@
 #include <vector>
 #include "Arrays/cpp_arrays.hpp"
 
-std::vector<std::vector<Array<float>>> train_test_split(std::vector<Array<float>> X, std::vector<Array<float>> y, float test_prop=0.1){
+std::vector<std::vector<Array<float>>> train_test_split(std::vector<Array<float>> X, std::vector<Array<float>> y,
+    float test_prop=0.1, int32_t seed=-1) {
+    
     std::vector<Array<float>> X_train, y_train, X_test, y_test;
     
     //random numbers generator
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    if (seed == -1) {
+        std::random_device rd;
+        seed = rd();
+    }
+    std::mt19937 gen(seed);
     
     unsigned int test_size = X.size() * test_prop;
     for (unsigned int i = 0; i<test_size; i++){

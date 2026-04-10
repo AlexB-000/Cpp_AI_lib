@@ -2,13 +2,18 @@
 #include <random>
 #include "CppAI/Cpp_AI.hpp"
 
-std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
+#define SEED 0
+
+std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t seed=-1){
     std::vector<Array<float>> data;
     std::vector<Array<float>> target;
 
     //random numbers generator
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    if (seed == -1) {
+        std::random_device rd;
+        seed = rd();
+    }
+    std::mt19937 gen(seed);
     std::uniform_int_distribution<> dis(0, 1);
 
     for (unsigned int i=0; i<size; i++){
@@ -44,11 +49,11 @@ int main(){
     auto t1 = high_resolution_clock::now();
 
     Network net;
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, "he");
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, "he", SEED);
     net.stackLayer(layer1);
     std::shared_ptr<PReLU> activation1 = std::make_shared<PReLU>(5, 0.01f);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 1, "glorot");
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 1, "glorot", SEED);
     net.stackLayer(layer2);
 
     std::cout << "## Network created.\n";
@@ -66,11 +71,11 @@ int main(){
     }
 
 
-    std::vector<std::vector<Array<float>>> data = generate_data(1000);
+    std::vector<std::vector<Array<float>>> data = generate_data(1000, SEED);
     std::vector<Array<float>> X = data[0];
     std::vector<Array<float>> y = data[1];
 
-    std::vector<std::vector<Array<float>>> splited = train_test_split(X, y, 0.1f);
+    std::vector<std::vector<Array<float>>> splited = train_test_split(X, y, 0.1f, SEED);
     std::vector<Array<float>> X_train = splited[0];
     std::vector<Array<float>> y_train = splited[1];
     std::vector<Array<float>> X_test = splited[2];

@@ -4,10 +4,13 @@
 #include "module.hpp"
 
 class Linear: public Module{
-    void initialize_parameters(float weightMean, float weightStdDev, float biasMean, float biasStdDev) {
+    void initialize_parameters(float weightMean, float weightStdDev, float biasMean, float biasStdDev, int32_t seed=-1) {
         // Initialize weights
-        std::random_device rd;
-        std::mt19937 gen(rd());
+        if (seed == -1) {
+            std::random_device rd;
+            seed = rd();
+        }
+        std::mt19937 gen(seed);
         std::normal_distribution<float> weight_dist(weightMean, weightStdDev);
 
         for (unsigned int i = 0; i < outputSize; ++i) {
@@ -38,7 +41,7 @@ public:
 
     ~Linear() = default;
 
-    Linear(unsigned int inInputSize, unsigned int inOutputSize, std::string initialization = "he") :
+    Linear(unsigned int inInputSize, unsigned int inOutputSize, std::string initialization = "he", int32_t seed=-1) :
         inputSize(inInputSize), outputSize(inOutputSize) {
 
         biases = Array<float>({outputSize}, 0.0);
@@ -47,13 +50,13 @@ public:
 
         if (initialization == "lecun") {
             float weightStdDev = std::sqrt(1.0f / inputSize);
-            initialize_parameters(0.0f, weightStdDev, 0.0f, 0.0f);
+            initialize_parameters(0.0f, weightStdDev, 0.0f, 0.0f, seed);
         } else if (initialization == "glorot" || initialization == "xavier") {
             float weightStdDev = std::sqrt(2.0f / (inputSize + outputSize));
-            initialize_parameters(0.0f, weightStdDev, 0.0f, 0.0f);
+            initialize_parameters(0.0f, weightStdDev, 0.0f, 0.0f, seed);
         } else if (initialization == "he") {
             float weightStdDev = std::sqrt(2.0f / inputSize);
-            initialize_parameters(0.0f, weightStdDev, 0.0f, 0.0f);
+            initialize_parameters(0.0f, weightStdDev, 0.0f, 0.0f, seed);
         } else {
             throw std::invalid_argument("Unsupported initialization method: " + initialization);
         }

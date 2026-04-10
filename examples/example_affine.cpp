@@ -6,13 +6,16 @@
 #include "CppAI/optimizers/GD.hpp"
 #include "CppAI/loss/MSE_Loss.hpp"
 
-std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
+std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t seed=-1){
     std::vector<Array<float>> data;
     std::vector<Array<float>> target;
 
     //random numbers generator
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    if (seed == -1) {
+        std::random_device rd;
+        seed = rd();
+    }
+    std::mt19937 gen(seed);
     std::uniform_real_distribution<> dis(0, 10);
 
     for (unsigned int i=0; i<size; i++){
