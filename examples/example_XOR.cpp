@@ -1,13 +1,6 @@
 #include <iostream>
 #include <random>
-#include "CppAI/preprocessing/train_test_split.hpp"
-#include "CppAI/deep_learning/network.hpp"
-#include "CppAI/deep_learning/linear.hpp"
-#include "CppAI/optimizers/GD.hpp"
-#include "CppAI/loss/BCEWithLogitsLoss.hpp"
-#include "CppAI/deep_learning/ReLU.hpp"
-#include "CppAI/activation/sigmoid.hpp"
-#include "CppAI/evaluation.hpp"
+#include "CppAI/Cpp_AI.hpp"
 
 std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
     std::vector<Array<float>> data;
@@ -51,11 +44,11 @@ int main(){
     auto t1 = high_resolution_clock::now();
 
     Network net;
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, 0.0f, 0.5f, 0.0f, 0.5f);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, "he");
     net.stackLayer(layer1);
-    std::shared_ptr<Sigmoid> activation1 = std::make_shared<Sigmoid>(5);
+    std::shared_ptr<PReLU> activation1 = std::make_shared<PReLU>(5, 0.01f);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 1, 0.0f, 0.5f, 0.0f, 0.5f);
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 1, "glorot");
     net.stackLayer(layer2);
 
     std::cout << "## Network created.\n";

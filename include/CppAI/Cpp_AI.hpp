@@ -7,8 +7,10 @@
 
 #include "deep_learning/network.hpp"
 #include "deep_learning/linear.hpp"
-#include "deep_learning/ReLU.hpp"
 
+#include "activation/ReLU.hpp"
+#include "activation/LeakyReLU.hpp"
+#include "activation/PReLU.hpp"
 #include "activation/tanh.hpp"
 #include "activation/sigmoid.hpp"
 #include "activation/softmax.hpp"

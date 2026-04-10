@@ -25,7 +25,7 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size){
 
 int main(){
     Network net;
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(1, 1);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(1, 1, "lecun");
     net.stackLayer(layer1);
 
     std::cout << "## Network created.\n";
