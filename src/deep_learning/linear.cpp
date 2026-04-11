@@ -18,7 +18,7 @@ std::vector<Array<float>> Linear::backward(const Array<float>& prevDeriv){
     if (prevDeriv.shape[0] != outputSize) {
         throw std::invalid_argument("In Linear backward : Previous derivative size does not match the expected output size.");
     }
-    Array<float> deriv = matmul(weights.T(), prevDeriv);
+    Array<float> deriv = matmul(prevDeriv, weights);
     Array<float> d_biases = prevDeriv;
     Array<float> d_weights {std::vector<unsigned int>{static_cast<unsigned int>(outputSize), static_cast<unsigned int>(inputSize)}, 0};
     for (unsigned int i=0; i<static_cast<unsigned int>(outputSize); i++){

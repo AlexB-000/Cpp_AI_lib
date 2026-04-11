@@ -46,14 +46,12 @@ Array<T> matrix_vector_mult(const Array<T>& t1, const Array<T>& t2){
     const uint32_t m = t1.shape[0];
     const uint32_t n = t1.shape[1];
 
-    Array<T> result(std::vector<uint32_t>{m});
+    Array<T> result(std::vector<uint32_t>{m}, 0.0f);
 
     for (uint32_t i = 0; i < m; ++i) {
-        T sum = T();
         for (uint32_t j = 0; j < n; ++j) {
-            sum += t1.data[i * n + j] * t2.data[j];
+            result.data[i] += t1.data[i * n + j] * t2.data[j];
         }
-        result.data[i] = sum;
     }
     return result;
 }
@@ -66,14 +64,12 @@ Array<T> vector_matrix_mult(const Array<T>& t1, const Array<T>& t2){
     const uint32_t m = t2.shape[0];
     const uint32_t n = t2.shape[1];
     
-    Array<T> result(std::vector<uint32_t>{n});
+    Array<T> result(std::vector<uint32_t>{n}, 0.0f);
     
-    for (uint32_t k = 0; k < n; ++k) {
-        T sum = T();
-        for (uint32_t j = 0; j < m; ++j) {
-            sum += t1.data[j] * t2.data[j * n + k];
+    for (uint32_t j = 0; j < m; ++j) {
+        for (uint32_t k = 0; k < n; ++k) {
+            result.data[k] += t1.data[j] * t2.data[j * n + k];
         }
-        result.data[k] = sum;
     }
     return result;
 }
