@@ -14,12 +14,10 @@ Array<T> matrix_mult(const Array<T>& t1, const Array<T>& t2){
     Array<T> result(std::vector<uint32_t>{m, p});
 
     for (uint32_t i = 0; i < m; ++i) {
-        for (uint32_t j = 0; j < p; ++j) {
-            T sum = T();
-            for (uint32_t k = 0; k < n; ++k) {
-                sum += t1.data[i * n + k] * t2.data[k * p + j];
+        for (uint32_t k = 0; k < n; ++k) {
+            for (uint32_t j = 0; j < p; ++j) {
+                result.data[i * p + j] += t1.data[i * n + k] * t2.data[k * p + j];
             }
-            result.data[i * p + j] = sum;
         }
     }
     return result;
