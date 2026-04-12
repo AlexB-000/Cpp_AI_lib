@@ -5,6 +5,7 @@
 
 class Softmax: public Module{
 public:
+    bool skipTraining = false;
     unsigned int inputSize;
     unsigned int outputSize;
     Array<float> outputCache;
@@ -13,6 +14,8 @@ public:
     Softmax(unsigned int size) : inputSize(size), outputSize(size) {}
     Softmax(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
 
+    void setSkipTraining(bool value=true) { skipTraining=value; }
+
     std::shared_ptr<Module> copy() const override {
         return std::make_shared<Softmax>(*this);
     }
@@ -20,6 +23,10 @@ public:
 	std::vector< Array<float>* > get_parameters() override { return {}; };
 
     Array<float> forward(const Array<float>& input) override {
+        if (skipTraining && training) {
+            return input;
+        }
+        
         if (input.dim != 1){
             throw std::invalid_argument("In Softmax forward : Input must be a 1D array.");
         }
@@ -48,6 +55,10 @@ public:
     }
 
     std::vector< Array<float> > backward(const Array<float>& prevDeriv) override {
+        if (skipTraining && training) {
+            return {{}, prevDeriv};
+        }
+
         if (prevDeriv.dim != 1){
             throw std::invalid_argument("In Softmax backward : Previous derivative must be a 1D array.");
         }

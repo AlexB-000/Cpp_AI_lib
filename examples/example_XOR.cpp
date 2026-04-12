@@ -55,6 +55,9 @@ int main(){
     net.stackLayer(activation1);
     std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 1, "glorot", SEED);
     net.stackLayer(layer2);
+    std::shared_ptr<Sigmoid> activation2 = std::make_shared<Sigmoid>(1);
+    activation2->setSkipTraining();
+    net.stackLayer(activation2);
 
     std::cout << "## Network created.\n";
 
@@ -89,9 +92,6 @@ int main(){
     std::cout << "## Starting training...\n";
 
     optimizer.train(X_train, y_train, 50, 100, 1.0f, 2, false);
-
-    std::shared_ptr<Sigmoid> activation2 = std::make_shared<Sigmoid>(1);
-    net.stackLayer(activation2);
 
     params = net.get_parameters();
     std::cout << "Learned Parameters:\n";
