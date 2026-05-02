@@ -25,6 +25,7 @@ std::vector< Array<float> > Network::backward(const Array<float>& prevDeriv){
 		layerDerivs.pop_back();
 		allDerivs.insert(allDerivs.begin(), layerDerivs.begin(), layerDerivs.end());
 	}
+	allDerivs.push_back(deriv);
 	return allDerivs;
 }
 
