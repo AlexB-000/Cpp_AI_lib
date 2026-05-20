@@ -9,25 +9,36 @@ template<typename _T>
 struct Array {
     uint32_t dim;
     std::vector<uint32_t> shape;
+    std::vector<uint32_t> strides;
     std::vector<_T> data;
 
     Array() = default;
     
-    Array(const Array& other) : shape(other.shape), data(other.data), dim(other.dim) {}
-    Array(const _T& value): shape({}), dim(0), data({value}) {}
+    Array(const Array& other) : shape(other.shape), strides(other.strides), data(other.data), dim(other.dim) {}
+    Array(const _T& value): shape({}), strides({}), dim(0), data({value}) {}
 
-    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), dim(shape.size()) {
-        uint32_t total_size = 1;
-        for (uint32_t dim : shape) {
-            total_size *= dim;
+    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides({}), dim(shape.size()) {
+        strides.resize(dim);
+        uint32_t size = 1;
+        for (int32_t i = dim-1; i >= 0; --i) {
+            strides[i] = size;
+            size *= shape[i];
         }
-        data.resize(total_size, value);
+        data.resize(size, value);
     }
     Array(const std::vector<uint32_t>& shape, const std::vector<_T>& data) :
-        shape(shape), dim(shape.size()), data(data) {}
+        shape(shape), strides({}), dim(shape.size()), data(data) {
+        strides.resize(dim);
+        uint32_t size = 1;
+        for (int32_t i = dim-1; i >= 0; --i) {
+            strides[i] = size;
+            size *= shape[i];
+        }
+    }
 
     Array& operator=(const Array& other) {
         shape = other.shape;
+        strides = other.strides;
         data = other.data;
         dim = other.dim;
         return *this;
@@ -85,140 +96,6 @@ struct Array {
             stride *= shape[i];
         }
         return data[flat_index];
-    }
-
-    //MARK: element-wise
-    Array operator+(const Array& other) const {
-        Array result(shape);
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for addition.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] + other.data[i];
-        }
-        return result;
-    }
-    Array operator-(const Array& other) const {
-        Array result(shape);
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for subtraction.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] - other.data[i];
-        }
-        return result;
-    }
-    Array operator*(const Array& other) const {
-        Array result(shape);
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for multiplication.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] * other.data[i];
-        }
-        return result;
-    }
-    Array operator/(const Array& other) const {
-        Array result(shape);
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for division.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] / other.data[i];
-        }
-        return result;
-    }
-
-    Array& operator+=(const Array& other) {
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for addition.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] += other.data[i];
-        }
-        return *this;
-    }
-    Array& operator-=(const Array& other) {
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for subtraction.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] -= other.data[i];
-        }
-        return *this;
-    }
-    Array& operator*=(const Array& other) {
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for multiplication.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] *= other.data[i];
-        }
-        return *this;
-    }
-    Array& operator/=(const Array& other) {
-        if (shape != other.shape) {
-            throw std::invalid_argument("Shapes must match for division.");
-        }
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] /= other.data[i];
-        }
-        return *this;
-    }
-
-    //MARK: scalar
-    Array operator+(const _T& scalar) const {
-        Array result(shape);
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] + scalar;
-        }
-        return result;
-    }
-    Array operator-(const _T& scalar) const {
-        Array result(shape);
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] - scalar;
-        }
-        return result;
-    }
-    Array operator*(const _T& scalar) const {
-        Array result(shape);
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] * scalar;
-        }
-        return result;
-    }
-    Array operator/(const _T& scalar) const {
-        Array result(shape);
-        for (size_t i = 0; i < data.size(); ++i) {
-            result.data[i] = data[i] / scalar;
-        }
-        return result;
-    }
-
-    Array& operator+=(const _T& scalar) {
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] += scalar;
-        }
-        return *this;
-    }
-    Array& operator-=(const _T& scalar) {
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] -= scalar;
-        }
-        return *this;
-    }
-    Array& operator*=(const _T& scalar) {
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] *= scalar;
-        }
-        return *this;
-    }
-    Array& operator/=(const _T& scalar) {
-        for (size_t i = 0; i < data.size(); ++i) {
-            data[i] /= scalar;
-        }
-        return *this;
     }
 
     //MARK: show
