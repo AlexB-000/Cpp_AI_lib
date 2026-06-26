@@ -133,7 +133,7 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
 
             if (display_mode >= 2 && (i / batch_size) % batch_info_interval == 0) {
                 std::cout << "\tbatch completed " << (i / batch_size) + 1 << "/" << (num_samples / batch_size + 1)
-                    << "\tLoss: " << batch_loss << "\n";
+                    << "\tLoss: " << batch_loss / actual_batch_size << "\n";
             }
             epoch_loss += batch_loss;
         }
