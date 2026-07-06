@@ -37,9 +37,9 @@ void Network::save(const std::string& filename) const {
 	}
 
 	for (const Array<float>* param : parameters) {
-		unsigned int size = param->data.size();
+		unsigned int size = param->data_ptr->size();
 		for (unsigned int i = 0; i < size; i++) {
-			float value = param->data[i];
+			float value = param->data_ptr->at(i);
 			outFile.write(reinterpret_cast<const char*>(&value), sizeof(value));
 		}
 	}
@@ -53,11 +53,11 @@ void Network::load(const std::string& filename) {
 	}
 
 	for (Array<float>* param : parameters) {
-		unsigned int size = param->data.size();
+		unsigned int size = param->data_ptr->size();
 		for (unsigned int i = 0; i < size; i++) {
 			float value;
 			inFile.read(reinterpret_cast<char*>(&value), sizeof(value));
-			param->data[i] = value;
+			param->data_ptr->at(i) = value;
 		}
 	}
 }
