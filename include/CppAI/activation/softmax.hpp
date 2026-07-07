@@ -11,8 +11,9 @@ public:
     Array<float> outputCache;
 
     ~Softmax() = default;
-    Softmax(unsigned int size) : inputSize(size), outputSize(size) {}
-    Softmax(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
+    Softmax(unsigned int size) : inputSize(size), outputSize(size), outputCache(std::vector<uint32_t>{size}) {}
+    Softmax(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize),
+        outputCache(std::vector<uint32_t>{inOutputSize}) {}
 
     void setSkipTraining(bool value=true) { skipTraining=value; }
 
@@ -56,7 +57,7 @@ public:
 
     std::vector< Array<float> > backward(const Array<float>& prevDeriv) override {
         if (skipTraining && training) {
-            return {{}, prevDeriv};
+            return {prevDeriv};
         }
 
         if (prevDeriv.dim != 1){
@@ -74,6 +75,6 @@ public:
                 deriv[k] += prevDeriv[i] * outputCache[i] * (delta - outputCache[k]);
             }
         }
-        return {{}, deriv};
+        return {deriv};
     }
 };

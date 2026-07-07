@@ -11,8 +11,9 @@ public:
     Array<float> outputCache;
 
     ~Sigmoid() = default;
-    Sigmoid(unsigned int size) : inputSize(size), outputSize(size) {}
-    Sigmoid(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
+    Sigmoid(unsigned int size) : inputSize(size), outputSize(size), outputCache(std::vector<uint32_t>{size}) {}
+    Sigmoid(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize),
+        outputCache(std::vector<uint32_t>{inOutputSize}) {}
 
     void setSkipTraining(bool value=true) { skipTraining=value; }
 
@@ -47,7 +48,7 @@ public:
 
     std::vector< Array<float> > backward(const Array<float>& prevDeriv) override {
         if (skipTraining && training) {
-            return {{}, prevDeriv};
+            return {prevDeriv};
         }
 
         if (prevDeriv.dim != 1){
@@ -61,6 +62,6 @@ public:
         for (uint32_t i=0; i < deriv.shape[0]; i++){
             deriv[i] = prevDeriv[i] * outputCache[i] * (1.0f - outputCache[i]); // Sigmoid derivative
         }
-        return {{}, deriv};
+        return {deriv};
     }
 };

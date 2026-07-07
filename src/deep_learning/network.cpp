@@ -7,25 +7,25 @@ void Network::stackLayer(const std::shared_ptr<Module> layer){
 }
 
 Array<float> Network::forward(const Array<float>& input){
-	Array<float> output = input;
+	std::shared_ptr<Array<float>> output = std::make_shared<Array<float>>(input);
 	for(auto& layer : modules){
-		output = layer->forward(output);
+		output = std::make_shared<Array<float>>(layer->forward(*output));
 	}
-	return output;
+	return *output;
 }
 
 std::vector< Array<float> > Network::backward(const Array<float>& prevDeriv){
 
-	Array<float> deriv = prevDeriv;
+	std::shared_ptr<Array<float>> deriv = std::make_shared<Array<float>>(prevDeriv);
 
 	std::vector< Array<float> > allDerivs;
 	for(int i = modules.size() - 1; i >= 0; i--){
-		std::vector< Array<float> > layerDerivs = modules[i]->backward(deriv);
-		deriv = layerDerivs.back();
+		std::vector< Array<float> > layerDerivs = modules[i]->backward(*deriv);
+		deriv = std::make_shared<Array<float>>(layerDerivs.back());
 		layerDerivs.pop_back();
 		allDerivs.insert(allDerivs.begin(), layerDerivs.begin(), layerDerivs.end());
 	}
-	allDerivs.push_back(deriv);
+	allDerivs.emplace_back(*deriv);
 	return allDerivs;
 }
 

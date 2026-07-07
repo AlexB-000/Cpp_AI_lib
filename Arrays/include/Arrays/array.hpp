@@ -11,14 +11,15 @@ struct Array {
     std::vector<uint32_t> shape;
     std::vector<uint32_t> strides;
     std::shared_ptr<std::vector<_T>> data_ptr;
+private:
+    Array();
+public:
+    Array(const Array& other) : shape(other.shape), strides(other.strides),
+        data_ptr(std::make_shared<std::vector<_T>>(*other.data_ptr)), dim(other.dim) {}
+    Array(const _T& value): shape({}), strides({}), dim(0),
+        data_ptr(std::make_shared<std::vector<_T>>(std::vector<_T>{value})) {}
 
-    Array() = default;
-    
-    Array(const Array& other) : shape(other.shape), strides(other.strides), data_ptr(std::make_shared<std::vector<_T>>(*other.data_ptr)), dim(other.dim) {}
-    Array(const _T& value): shape({}), strides({}), dim(0), data_ptr(std::make_shared<std::vector<_T>>(std::vector<_T>{value})) {}
-
-    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides({}), dim(shape.size()) {
-        strides.resize(dim);
+    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides(dim), dim(shape.size()) {
         uint32_t size = 1;
         for (int32_t i = dim-1; i >= 0; --i) {
             strides[i] = size;
@@ -27,8 +28,7 @@ struct Array {
         data_ptr = std::make_shared<std::vector<_T>>(std::vector<_T>(size, value));
     }
     Array(const std::vector<uint32_t>& shape, const std::vector<_T>& data) :
-        shape(shape), strides({}), dim(shape.size()), data_ptr(std::make_shared<std::vector<_T>>(data)) {
-        strides.resize(dim);
+        shape(shape), strides(dim), dim(shape.size()), data_ptr(std::make_shared<std::vector<_T>>(data)) {
         uint32_t size = 1;
         for (int32_t i = dim-1; i >= 0; --i) {
             strides[i] = size;
@@ -101,6 +101,7 @@ struct Array {
     defineElementwiseOp(operator*, *)
     defineElementwiseOp(operator/, /)
 
+    defineElementwiseOpInPlace(operator=, =)
     defineElementwiseOpInPlace(operator+=, +=)
     defineElementwiseOpInPlace(operator-=, -=)
     defineElementwiseOpInPlace(operator*=, *=)

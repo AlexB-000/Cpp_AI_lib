@@ -6,12 +6,13 @@ class Tanh: public Module{
 public:
     unsigned int inputSize;
     unsigned int outputSize;
-    Array<float> inputCache;
+    Array<float> outputCache;
 
     ~Tanh() = default;
 
-    Tanh(unsigned int size) : inputSize(size), outputSize(size) {}
-    Tanh(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
+    Tanh(unsigned int size) : inputSize(size), outputSize(size), outputCache(std::vector<uint32_t>{size}) {}
+    Tanh(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize),
+        outputCache(std::vector<uint32_t>{inOutputSize}) {}
 
     std::shared_ptr<Module> copy() const override {
         return std::make_shared<Tanh>(*this);
@@ -26,13 +27,12 @@ public:
         if (input.shape[0] != inputSize) {
             throw std::invalid_argument("In Tanh forward : Input size does not match the expected size.");
         }
-
-        if(training) inputCache = input;
         Array<float> output {input.shape};
 
         for (uint32_t i=0; i < output.shape[0]; i++){
             output[i] = std::tanh(input[i]);
         }
+        if(training) outputCache = output;
 
         return output;
     }
@@ -47,9 +47,8 @@ public:
         
         Array<float> deriv{prevDeriv.shape};
         for (uint32_t i=0; i < deriv.shape[0]; i++){
-            float tanh_x = std::tanh(inputCache[i]);
-            deriv[i] = prevDeriv[i] * (1 - tanh_x * tanh_x);
+            deriv[i] = prevDeriv[i] * (1 - outputCache[i] * outputCache[i]);
         }
-        return {{}, deriv};
+        return {deriv};
     }
 };

@@ -1,7 +1,8 @@
 #include "CppAI/optimizers/GD.hpp"
 
 void GD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
-    (*param) -= (*grad) * lr;
+    if (param)
+        (*param) -= (*grad) * lr;
 }
 
 void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
@@ -25,7 +26,7 @@ void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
 }
 
 std::vector<Array<float>> GD::backpropagation(Network* _model, const Array<float>& LossDeriv) {
-    Array<float> deriv = LossDeriv;
+    std::shared_ptr<Array<float>> deriv = std::make_shared<Array<float>>(LossDeriv);
     std::vector<Array<float>> all_grads;
 
     for (int layer_idx = _model->modules.size()-1; layer_idx >= 0; layer_idx--) {
@@ -33,19 +34,18 @@ std::vector<Array<float>> GD::backpropagation(Network* _model, const Array<float
 
         // std::cout << "Backpropagating through layer : " << layer << " index: " << layer_idx << "\n";
 
-        std::vector<Array<float>> grad = layer->backward(deriv);
+        std::vector<Array<float>> grad = layer->backward(*deriv);
 
         // std::cout << "Layer backward gradients:\n";
         // for (size_t i = 0; i < grad.size(); ++i) {
         //     grad[i].show();
         // }
         
-        // Skip updating parameters that do not have gradients (non-trainable parameters)
-        // their Array<float> is empty so it represents the scalar 0.0f by default
-        if (grad[0].dim > 0) {
+        // Skip modules that do not have gradients (no parameters)
+        if (grad.size() > 1) {
             all_grads.insert(all_grads.begin(), grad.begin(), grad.end()-1);
         }
-        deriv = grad.back();
+        deriv = std::make_shared<Array<float>>(grad.back());
     }
     return all_grads;
 }

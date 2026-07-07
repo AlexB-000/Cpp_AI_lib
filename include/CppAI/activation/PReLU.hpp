@@ -10,9 +10,11 @@ public:
 
     ~PReLU() = default;
 
-    PReLU(unsigned int size, float inAlpha=0.01f) : inputSize(size), outputSize(size), alpha({1}, inAlpha) {}
+    PReLU(unsigned int size, float inAlpha=0.01f) : inputSize(size), outputSize(size),
+        alpha({1}, inAlpha), inputCache(std::vector<uint32_t>{size}) {}
     PReLU(unsigned int inInputSize, unsigned int inOutputSize, float inAlpha=0.01f) :
-        inputSize(inInputSize), outputSize(inOutputSize), alpha({1}, inAlpha) {}
+        inputSize(inInputSize), outputSize(inOutputSize),
+        alpha({1}, inAlpha), inputCache(std::vector<uint32_t>{inInputSize}) {}
 
     std::shared_ptr<Module> copy() const override {
         return std::make_shared<PReLU>(*this);

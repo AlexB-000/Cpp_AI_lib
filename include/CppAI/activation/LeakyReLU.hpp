@@ -11,9 +11,12 @@ public:
 
     ~LeakyReLU() = default;
 
-    LeakyReLU(unsigned int size, float inAlpha=0.01f) : inputSize(size), outputSize(size), alpha(inAlpha) {}
+    LeakyReLU(unsigned int size, float inAlpha=0.01f) : inputSize(size), outputSize(size),
+        alpha(inAlpha), inputCache(std::vector<uint32_t>{size}) {}
     LeakyReLU(unsigned int inInputSize, unsigned int inOutputSize, float inAlpha=0.01f) :
-        inputSize(inInputSize), outputSize(inOutputSize), alpha(inAlpha) {}
+        inputSize(inInputSize), outputSize(inOutputSize),
+        alpha(inAlpha),
+        inputCache(std::vector<uint32_t>{inInputSize})  {}
 
     std::shared_ptr<Module> copy() const override {
         return std::make_shared<LeakyReLU>(*this);
@@ -57,6 +60,6 @@ public:
                 deriv[i] = prevDeriv[i];
             }
         }
-        return {{}, deriv};
+        return {deriv};
     }
 };

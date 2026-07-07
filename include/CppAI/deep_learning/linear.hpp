@@ -42,11 +42,10 @@ public:
     ~Linear() = default;
 
     Linear(unsigned int inInputSize, unsigned int inOutputSize, std::string initialization = "he", int32_t seed=-1) :
-        inputSize(inInputSize), outputSize(inOutputSize) {
-
-        biases = Array<float>({outputSize}, 0.0);
-        weights = Array<float>({outputSize, inputSize});
-        prevInput = Array<float>(inputSize);
+        inputSize(inInputSize), outputSize(inOutputSize),
+        biases({outputSize}, 0.0),
+        weights({outputSize, inputSize}),
+        prevInput(std::vector<uint32_t>{inputSize}) {
 
         if (initialization == "lecun") {
             float weightStdDev = std::sqrt(1.0f / inputSize);

@@ -9,8 +9,9 @@ public:
 
     ~ReLU() = default;
 
-    ReLU(unsigned int size) : inputSize(size), outputSize(size) {}
-    ReLU(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize) {}
+    ReLU(unsigned int size) : inputSize(size), outputSize(size), inputCache(std::vector<uint32_t>{size}) {}
+    ReLU(unsigned int inInputSize, unsigned int inOutputSize) : inputSize(inInputSize), outputSize(inOutputSize),
+        inputCache(std::vector<uint32_t>{inInputSize})  {}
 
     std::shared_ptr<Module> copy() const override {
         return std::make_shared<ReLU>(*this);
@@ -54,6 +55,6 @@ public:
                 deriv[i] = prevDeriv[i];
             }
         }
-        return {{}, deriv};
+        return {deriv};
     }
 };
