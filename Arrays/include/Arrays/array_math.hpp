@@ -16,8 +16,8 @@ Array<T> matrix_mult(const Array<T>& t1, const Array<T>& t2){
     for (uint32_t i = 0; i < m; ++i) {
         for (uint32_t k = 0; k < n; ++k) {
             for (uint32_t j = 0; j < p; ++j) {
-                (*result.data_ptr)[i * p + j] += (*t1.data_ptr)[i * t1.strides[0] + k * t1.strides[1]] *
-                                                 (*t2.data_ptr)[k * t2.strides[0] + j * t2.strides[1]];
+                (*result.data_ptr)[i * p + j] += (*t1.data_ptr)[i * t1.strides[0] + k * t1.strides[1] + t1.offset] *
+                                                 (*t2.data_ptr)[k * t2.strides[0] + j * t2.strides[1] + t2.offset];
             }
         }
     }
@@ -32,7 +32,7 @@ T vector_mult(const Array<T>& t1, const Array<T>& t2){
 
     T sum = T();
     for (uint32_t i = 0; i < t1.data_ptr->size(); ++i) {
-        sum += (*t1.data_ptr)[i * t1.strides[0]] * (*t2.data_ptr)[i * t2.strides[0]];
+        sum += (*t1.data_ptr)[i * t1.strides[0] + t1.offset] * (*t2.data_ptr)[i * t2.strides[0] + t2.offset];
     }
     return sum;
 }
@@ -49,7 +49,8 @@ Array<T> matrix_vector_mult(const Array<T>& t1, const Array<T>& t2){
 
     for (uint32_t i = 0; i < m; ++i) {
         for (uint32_t j = 0; j < n; ++j) {
-            (*result.data_ptr)[i] += (*t1.data_ptr)[i * t1.strides[0] + j * t1.strides[1]] * (*t2.data_ptr)[j * t2.strides[0]];
+            (*result.data_ptr)[i] += (*t1.data_ptr)[i * t1.strides[0] + j * t1.strides[1] + t1.offset] *
+                                     (*t2.data_ptr)[j * t2.strides[0] + t2.offset];
         }
     }
     return result;
@@ -67,7 +68,8 @@ Array<T> vector_matrix_mult(const Array<T>& t1, const Array<T>& t2){
     
     for (uint32_t j = 0; j < m; ++j) {
         for (uint32_t k = 0; k < n; ++k) {
-            (*result.data_ptr)[k] += (*t1.data_ptr)[j * t1.strides[0]] * (*t2.data_ptr)[j * t2.strides[0] + k * t2.strides[1]];
+            (*result.data_ptr)[k] += (*t1.data_ptr)[j * t1.strides[0] + t1.offset] *
+                                     (*t2.data_ptr)[j * t2.strides[0] + k * t2.strides[1] + t2.offset];
         }
     }
     return result;

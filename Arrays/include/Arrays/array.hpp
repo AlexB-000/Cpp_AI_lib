@@ -8,18 +8,19 @@
 template<typename _T>
 struct Array {
     uint32_t dim;
+    uint32_t offset;
     std::vector<uint32_t> shape;
     std::vector<uint32_t> strides;
     std::shared_ptr<std::vector<_T>> data_ptr;
 private:
     Array();
 public:
-    Array(const Array& other) : shape(other.shape), strides(other.strides),
-        data_ptr(std::make_shared<std::vector<_T>>(*other.data_ptr)), dim(other.dim) {}
-    Array(const _T& value): shape({}), strides({}), dim(0),
+    Array(const Array& other) : dim(other.dim), offset(other.offset), shape(other.shape), strides(other.strides),
+        data_ptr(std::make_shared<std::vector<_T>>(*other.data_ptr)) {}
+    Array(const _T& value): shape({}), strides({}), dim(0), offset(0),
         data_ptr(std::make_shared<std::vector<_T>>(std::vector<_T>{value})) {}
 
-    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides(dim), dim(shape.size()) {
+    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides(dim), dim(shape.size()), offset(0) {
         uint32_t size = 1;
         for (int32_t i = dim-1; i >= 0; --i) {
             strides[i] = size;
@@ -28,7 +29,7 @@ public:
         data_ptr = std::make_shared<std::vector<_T>>(std::vector<_T>(size, value));
     }
     Array(const std::vector<uint32_t>& shape, const std::vector<_T>& data) :
-        shape(shape), strides(dim), dim(shape.size()), data_ptr(std::make_shared<std::vector<_T>>(data)) {
+        shape(shape), strides(dim), dim(shape.size()), offset(0), data_ptr(std::make_shared<std::vector<_T>>(data)) {
         uint32_t size = 1;
         for (int32_t i = dim-1; i >= 0; --i) {
             strides[i] = size;
@@ -43,12 +44,13 @@ public:
         Array<_T> result(bshape); \
         std::vector<uint32_t> idx(bshape.size(), 0); \
         while (true){ \
-            uint32_t flat_index1 = 0, flat_index2 = 0; \
+            uint32_t flat_indexR = 0, flat_index1 = offset, flat_index2 = other.offset; \
             for (size_t i = 0; i < bshape.size(); ++i) { \
+                flat_indexR += idx[i] * result.strides[i]; \
                 flat_index1 += idx[i] * bstrides1[i]; \
                 flat_index2 += idx[i] * bstrides2[i]; \
             } \
-            (*result.data_ptr)[flat_index1] = (*data_ptr)[flat_index1] op_sign (*other.data_ptr)[flat_index2]; \
+            (*result.data_ptr)[flat_indexR] = (*data_ptr)[flat_index1] op_sign (*other.data_ptr)[flat_index2]; \
             /* Increment the multi-dimensional index */ \
             for (int32_t i = bshape.size() - 1; i >= 0; --i) { \
                 if (++idx[i] < bshape[i]) { \
@@ -74,7 +76,7 @@ public:
         } \
         std::vector<uint32_t> idx(bshape.size(), 0); \
         while (true){ \
-            uint32_t flat_index1 = 0, flat_index2 = 0; \
+            uint32_t flat_index1 = offset, flat_index2 = other.offset; \
             for (size_t i = 0; i < bshape.size(); ++i) { \
                 flat_index1 += idx[i] * bstrides1[i]; \
                 flat_index2 += idx[i] * bstrides2[i]; \
@@ -116,7 +118,7 @@ public:
         Array<_T> result({cols, rows});
         for (uint32_t i = 0; i < rows; ++i) {
             for (uint32_t j = 0; j < cols; ++j) {
-                (*result.data_ptr)[j * rows + i] = (*data_ptr)[i * cols + j];
+                (*result.data_ptr)[j * rows + i] = (*data_ptr)[i * strides[0] + j * strides[1] + offset];
             }
         }
         return result;
@@ -130,14 +132,12 @@ public:
         if (indices.size() != shape.size()) {
             throw std::invalid_argument("Number of indices must match the number of dim.");
         }
-        uint32_t flat_index = 0;
-        uint32_t stride = 1;
-        for (int i = shape.size() - 1; i >= 0; --i) {
+        uint32_t flat_index = offset;
+        for (uint32_t i = 0; i < shape.size(); ++i) {
             if (indices[i] >= shape[i]) {
                 throw std::out_of_range("Index out of bounds.");
             }
-            flat_index += indices[i] * stride;
-            stride *= shape[i];
+            flat_index += indices[i] * strides[i];
         }
         return (*data_ptr)[flat_index];
     }
@@ -150,14 +150,12 @@ public:
         if (indices.size() != shape.size()) {
             throw std::invalid_argument("Number of indices must match the number of dim.");
         }
-        uint32_t flat_index = 0;
-        uint32_t stride = 1;
-        for (int i = shape.size() - 1; i >= 0; --i) {
+        uint32_t flat_index = offset;
+        for (uint32_t i = 0; i < shape.size(); ++i) {
             if (indices[i] >= shape[i]) {
                 throw std::out_of_range("Index out of bounds.");
             }
-            flat_index += indices[i] * stride;
-            stride *= shape[i];
+            flat_index += indices[i] * strides[i];
         }
         return (*data_ptr)[flat_index];
     }
@@ -165,14 +163,14 @@ public:
     //MARK: show
     void show() const {
         if (dim == 0) {
-            std::cout << (*data_ptr)[0] << std::endl;
+            std::cout << (*data_ptr)[offset] << std::endl;
             return;
         }
         std::cout << "[";
         if (dim == 1) {
-            for (size_t i = 0; i < data_ptr->size(); ++i) {
-                std::cout << (*data_ptr)[i];
-                if (i < data_ptr->size() - 1) {
+            for (size_t i = 0; i < shape[0]; ++i) {
+                std::cout << (*data_ptr)[i * strides[0] + offset];
+                if (i < shape[0] - 1) {
                     std::cout << ", ";
                 }
             }
@@ -183,7 +181,7 @@ public:
             for (uint32_t i = 0; i < rows; ++i) {
                 std::cout << "[";
                 for (uint32_t j = 0; j < cols; ++j) {
-                    std::cout << (*data_ptr)[i * cols + j];
+                    std::cout << (*data_ptr)[i * strides[0] + j * strides[1] + offset];
                     if (j < cols - 1) {
                         std::cout << ", ";
                     }
@@ -194,9 +192,10 @@ public:
                 }
             }
         } else {
-            for (size_t i = 0; i < data_ptr->size(); ++i) {
-                std::cout << (*data_ptr)[i];
-                if (i < data_ptr->size() - 1) {
+            std::cout << "Nd Array with dim=" << dim << " and shape=[";
+            for (size_t i = 0; i < shape.size(); ++i) {
+                std::cout << shape[i];
+                if (i < shape.size() - 1) {
                     std::cout << ", ";
                 }
             }
