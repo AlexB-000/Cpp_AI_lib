@@ -14,7 +14,7 @@ struct Array {
 
     Array() = default;
     
-    Array(const Array& other) : shape(other.shape), strides(other.strides), data_ptr(other.data_ptr), dim(other.dim) {}
+    Array(const Array& other) : shape(other.shape), strides(other.strides), data_ptr(std::make_shared<std::vector<_T>>(*other.data_ptr)), dim(other.dim) {}
     Array(const _T& value): shape({}), strides({}), dim(0), data_ptr(std::make_shared<std::vector<_T>>(std::vector<_T>{value})) {}
 
     Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides({}), dim(shape.size()) {
