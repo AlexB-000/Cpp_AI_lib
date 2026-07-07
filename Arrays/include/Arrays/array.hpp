@@ -63,11 +63,11 @@ public:
         return result;
     }
 
-    #define defineElementwiseOp(op, op_sign) \
-    Array<_T> op(const Array<_T>& other) const { \
+    #define defineElementwiseOp(op, op_sign, return_type) \
+    Array<return_type> op(const Array<_T>& other) const { \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
         broadcast(*this, other, bshape, bstrides1, bstrides2); \
-        Array<_T> result(bshape); \
+        Array<return_type> result(bshape); \
         if (bshape.size() == 0) { \
             (*result.data_ptr)[0] = (*data_ptr)[offset] op_sign (*other.data_ptr)[other.offset]; \
             return result; \
@@ -93,8 +93,8 @@ public:
             } \
         } \
     } \
-    inline Array<_T> op(const _T scalar) const { \
-        return op(Array<_T>(scalar)); \
+    inline Array<return_type> op(const _T scalar) const { \
+        return op(Array<return_type>(scalar)); \
     }
 
     #define defineElementwiseOpInPlace(op, op_sign) \
@@ -132,10 +132,17 @@ public:
         return op(Array<_T>(scalar)); \
     }
     
-    defineElementwiseOp(operator+, +)
-    defineElementwiseOp(operator-, -)
-    defineElementwiseOp(operator*, *)
-    defineElementwiseOp(operator/, /)
+    defineElementwiseOp(operator+, +, _T)
+    defineElementwiseOp(operator-, -, _T)
+    defineElementwiseOp(operator*, *, _T)
+    defineElementwiseOp(operator/, /, _T)
+
+    defineElementwiseOp(operator==, ==, bool)
+    defineElementwiseOp(operator!=, !=, bool)
+    defineElementwiseOp(operator<, <, bool)
+    defineElementwiseOp(operator<=, <=, bool)
+    defineElementwiseOp(operator>, >, bool)
+    defineElementwiseOp(operator>=, >=, bool)
 
     defineElementwiseOpInPlace(operator=, =)
     defineElementwiseOpInPlace(operator+=, +=)

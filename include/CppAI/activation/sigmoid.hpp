@@ -1,7 +1,6 @@
 #pragma once
 #include <math.h>
 #include "CppAI/deep_learning/module.hpp"
-#include "../utils.hpp"
 
 class Sigmoid: public Module{
 public:

@@ -29,6 +29,13 @@ int main(){
     duration<double, std::milli> mmult_exe_time = mmult_t2 - mmult_t1;
 
     std::cout << "Matrix multiplication time: " << mmult_exe_time.count() << "ms\n";
+
+    std::cout << "Tests" << std::endl;
+    Array<float> a({2, 3}, {1, 2, 3, 4, 0, 6});
+    (a == Array<float>({3}, {1, 0, 3})).show();
+    max(a).show();
+    min(a).show();
+    sum(a).show();
 }
 
 // int main(){

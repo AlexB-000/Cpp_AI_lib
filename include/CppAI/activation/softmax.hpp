@@ -1,7 +1,6 @@
 #pragma once
 #include <math.h>
 #include "CppAI/deep_learning/module.hpp"
-#include "../utils.hpp"
 
 class Softmax: public Module{
 public:
@@ -38,19 +37,18 @@ public:
         Array<float> output {input.shape};
 
         // find max
-        double max_input = max(input);
+        Array<float> max_input = max(input);
 
         // exp(logit - max)
-        double sum = 0.0;
+        Array<float> sum = 0.0;
         for (unsigned int i = 0; i < input.shape[0]; ++i) {
-            output.at(i) = std::exp(input.at(i) - max_input);
+            output.at(i) = std::exp(input.at(i) - max_input.at(i));
             sum += output.at(i);
         }
 
         // normalisation
-        for (unsigned int i = 0; i < input.shape[0]; ++i) {
-            output.at(i) /= sum;
-        }
+        output /= sum;
+        
         if (training) outputCache = output;
         return output;
     }
