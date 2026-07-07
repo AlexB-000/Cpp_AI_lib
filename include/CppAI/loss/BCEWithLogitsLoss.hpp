@@ -16,8 +16,8 @@ public:
             throw std::invalid_argument("In BCEWithLogitsLoss : Input size does not match the expected size.");
         }
 
-        float loss = std::log(1 + std::exp(predicted[0])) - target[0] * predicted[0]; // BCEWithLogitsLoss formula
-        gradient[0] = 1.0f / (1.0f + std::exp(-predicted[0])) - target[0]; // Sigmoid(predicted) - target
+        float loss = std::log(1 + std::exp(predicted.at(0))) - target.at(0) * predicted.at(0); // BCEWithLogitsLoss formula
+        gradient.at(0) = 1.0f / (1.0f + std::exp(-predicted.at(0))) - target.at(0); // Sigmoid(predicted) - target
         return loss;
     }
 };

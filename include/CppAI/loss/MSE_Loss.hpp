@@ -17,9 +17,9 @@ public:
 
         float loss = 0.0f;
         for (uint32_t i = 0; i < predicted.shape[0]; ++i) {
-            float diff = predicted[i] - target[i];
+            float diff = predicted.at(i) - target.at(i);
             loss += diff * diff;
-            gradient[i] = 2.0f * diff / static_cast<float>(target.shape[0]);
+            gradient.at(i) = 2.0f * diff / static_cast<float>(target.shape[0]);
         }
         return loss / static_cast<float>(target.shape[0]);
     }

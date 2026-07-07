@@ -19,9 +19,9 @@ public:
 
         float sum = 0.0f;
         for (uint32_t i = 0; i < predicted.shape[0]; ++i) {
-            float loss = -target[i] * std::log(predicted[i] + _epsilon);
+            float loss = -target.at(i) * std::log(predicted.at(i) + _epsilon);
             sum += loss;
-            gradient[i] = -target[i] / (predicted[i] + _epsilon);
+            gradient.at(i) = -target.at(i) / (predicted.at(i) + _epsilon);
         }
         return sum / static_cast<float>(target.shape[0]);
     }

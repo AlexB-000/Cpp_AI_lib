@@ -17,12 +17,12 @@ public:
 
         float loss = 0.0f;
         for (uint32_t i = 0; i < predicted.shape[0]; ++i) {
-            loss += std::abs(predicted[i] - target[i]);
-            if (target[i] - predicted[i] < 0){
-                gradient[i] = -1 / static_cast<float>(target.shape[0]);
+            loss += std::abs(predicted.at(i) - target.at(i));
+            if (target.at(i) - predicted.at(i) < 0){
+                gradient.at(i) = -1 / static_cast<float>(target.shape[0]);
             }
             else{
-                gradient[i] = 1 / static_cast<float>(target.shape[0]);
+                gradient.at(i) = 1 / static_cast<float>(target.shape[0]);
             }
         }
         return loss / static_cast<float>(target.shape[0]);

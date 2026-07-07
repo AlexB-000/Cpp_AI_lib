@@ -17,11 +17,11 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t 
     for (unsigned int i=0; i<size; i++){
         float value1 = dis(gen);
         float value2 = dis(gen);
-        data.push_back(Array<float>{{2}, {value1, value2}});
+        data.emplace_back(Array<float>{{2}, {value1, value2}});
         if (value1 && value2 || (!value1 && !value2))
-            target.push_back(Array<float>{{1}, {-1.0f}});
+            target.emplace_back(Array<float>{{1}, {-1.0f}});
         else
-            target.push_back(Array<float>{{1}, {1.0f}});
+            target.emplace_back(Array<float>{{1}, {1.0f}});
     }
     return {data, target};
 }
@@ -34,7 +34,7 @@ void printDecisionGraph(Network& net){
         for (float x2 = 0.0f; x2 <= 1.0f; x2 += 0.2f){
             Array<float> input{{2}, {x1, x2}};
             Array<float> output = net.forward(input);
-            std::cout << output[0] << " ";
+            std::cout << output.at(0) << " ";
         }
         std::cout << "\n";
     }

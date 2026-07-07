@@ -9,18 +9,37 @@ template<typename _T>
 struct Array {
     uint32_t dim;
     uint32_t offset;
+    bool owner;
     std::vector<uint32_t> shape;
     std::vector<uint32_t> strides;
     std::shared_ptr<std::vector<_T>> data_ptr;
 private:
-    Array();
+    Array(uint32_t inDim, uint32_t inOffset, bool owner, const std::vector<uint32_t>& inShape, const std::vector<uint32_t>& inStrides,
+        std::shared_ptr<std::vector<_T>> inDataPtr) :
+        dim(inDim), offset(inOffset), owner(owner), shape(inShape), strides(inStrides), data_ptr(inDataPtr){};
 public:
-    Array(const Array& other) : dim(other.dim), offset(other.offset), shape(other.shape), strides(other.strides),
-        data_ptr(std::make_shared<std::vector<_T>>(*other.data_ptr)) {}
-    Array(const _T& value): shape({}), strides({}), dim(0), offset(0),
+    Array(const Array& other) : dim(other.dim), offset(0), shape(other.shape), strides(other.dim) {
+        if (!other.owner) {
+            offset = other.offset;
+            strides = other.strides;
+            data_ptr = other.data_ptr;
+            owner = false;
+            return;
+        }
+        owner = true;
+        uint32_t size = 1;
+        for (int32_t i = dim-1; i >= 0; --i) {
+            strides[i] = size;
+            size *= shape[i];
+        }
+        data_ptr = std::make_shared<std::vector<_T>>(std::vector<_T>(size));
+        *this = other;
+    }
+    Array(const _T& value): shape({}), strides({}), dim(0), offset(0), owner(true),
         data_ptr(std::make_shared<std::vector<_T>>(std::vector<_T>{value})) {}
 
-    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides(dim), dim(shape.size()), offset(0) {
+    Array(const std::vector<uint32_t>& shape, const _T& value=_T()) : shape(shape), strides(dim),
+        dim(shape.size()), offset(0), owner(true) {
         uint32_t size = 1;
         for (int32_t i = dim-1; i >= 0; --i) {
             strides[i] = size;
@@ -29,7 +48,8 @@ public:
         data_ptr = std::make_shared<std::vector<_T>>(std::vector<_T>(size, value));
     }
     Array(const std::vector<uint32_t>& shape, const std::vector<_T>& data) :
-        shape(shape), strides(dim), dim(shape.size()), offset(0), data_ptr(std::make_shared<std::vector<_T>>(data)) {
+        shape(shape), strides(dim), dim(shape.size()), offset(0), owner(true),
+        data_ptr(std::make_shared<std::vector<_T>>(data)) {
         uint32_t size = 1;
         for (int32_t i = dim-1; i >= 0; --i) {
             strides[i] = size;
@@ -37,11 +57,21 @@ public:
         }
     }
 
+    Array<_T> copy() const {
+        Array<_T> result (shape);
+        result = *this;
+        return result;
+    }
+
     #define defineElementwiseOp(op, op_sign) \
     Array<_T> op(const Array<_T>& other) const { \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
         broadcast(*this, other, bshape, bstrides1, bstrides2); \
         Array<_T> result(bshape); \
+        if (bshape.size() == 0) { \
+            (*result.data_ptr)[0] = (*data_ptr)[offset] op_sign (*other.data_ptr)[other.offset]; \
+            return result; \
+        } \
         std::vector<uint32_t> idx(bshape.size(), 0); \
         while (true){ \
             uint32_t flat_indexR = 0, flat_index1 = offset, flat_index2 = other.offset; \
@@ -74,6 +104,10 @@ public:
         if (bshape != shape) { \
             throw std::invalid_argument("Dimension mismatch: cannot broadcast shape of the input to the array."); \
         } \
+        if (bshape.size() == 0) { \
+            (*data_ptr)[offset] op_sign (*other.data_ptr)[other.offset]; \
+            return *this; \
+        } \
         std::vector<uint32_t> idx(bshape.size(), 0); \
         while (true){ \
             uint32_t flat_index1 = offset, flat_index2 = other.offset; \
@@ -83,7 +117,7 @@ public:
             } \
             (*data_ptr)[flat_index1] op_sign (*other.data_ptr)[flat_index2]; \
             /* Increment the multi-dimensional index */ \
-            for (uint32_t i = bshape.size() - 1; i >= 0; --i) { \
+            for (int32_t i = bshape.size() - 1; i >= 0; --i) { \
                 if (++idx[i] < bshape[i]) { \
                     break; \
                 } \
@@ -124,36 +158,84 @@ public:
         return result;
     }
 
-    //MARK: indexing
-    _T operator[](uint32_t index) const {
-        return (*this)[std::vector<uint32_t>{index}];
+//MARK: indexing
+    Array<_T> operator[](const uint32_t index) const {
+        if (dim == 0) {
+            throw std::invalid_argument("Cannot index into a scalar.");
+        }
+        if (index >= shape[0]) {
+            throw std::out_of_range("Index " + std::to_string(index) + " out of bounds for dimension 0 with size " + std::to_string(shape[0]));
+        }
+        uint32_t new_offset = offset + index * strides[0];
+        std::vector<uint32_t> new_shape(shape.begin() + 1, shape.end());
+        std::vector<uint32_t> new_strides(strides.begin() + 1, strides.end());
+        return Array<_T>(new_shape.size(), new_offset, false, new_shape, new_strides, data_ptr);
     }
-    _T operator[](const std::vector<uint32_t>& indices) const {
+
+    Array<_T> operator[](const std::vector<uint32_t>& indices) const {
+        if (indices.size() > shape.size()) {
+            throw std::invalid_argument("Number of indices must not exceed the number of dimensions.");
+        }
+        uint32_t new_offset = offset;
+        std::vector<uint32_t> new_shape, new_strides;
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if (indices[i] >= shape[i]) {
+                throw std::out_of_range("Index " + std::to_string(indices[i]) + " out of bounds for dimension " + std::to_string(i) + " with size " + std::to_string(shape[i]));
+            }
+            new_offset += indices[i] * strides[i];
+        }
+        for (size_t i = indices.size(); i < shape.size(); ++i) {
+            new_shape.push_back(shape[i]);
+            new_strides.push_back(strides[i]);
+        }
+        return Array<_T>(new_shape.size(), new_offset, false, new_shape, new_strides, data_ptr);
+    }
+
+    _T at(uint32_t index) const {
+        if (dim == 0) {
+            return (*data_ptr)[offset];
+        }
+        uint32_t flat_index = offset;
+        if (index >= shape[0]) {
+            throw std::out_of_range("Index " + std::to_string(index) + " out of bounds for dimension 0 with size " + std::to_string(shape[0]));
+        }
+        flat_index += index * strides[0];
+        return (*data_ptr)[flat_index];
+    }
+    _T at(const std::vector<uint32_t>& indices) const {
         if (indices.size() != shape.size()) {
-            throw std::invalid_argument("Number of indices must match the number of dim.");
+            throw std::invalid_argument("Number of indices must match the number of dimensions.");
         }
         uint32_t flat_index = offset;
         for (uint32_t i = 0; i < shape.size(); ++i) {
             if (indices[i] >= shape[i]) {
-                throw std::out_of_range("Index out of bounds.");
+                throw std::out_of_range("Index " + std::to_string(indices[i]) + " out of bounds for dimension " + std::to_string(i) + " with size " + std::to_string(shape[i]));
             }
             flat_index += indices[i] * strides[i];
         }
         return (*data_ptr)[flat_index];
     }
 
-    _T& operator[](uint32_t index) {
-        return (*this)[std::vector<uint32_t>{index}];
+    _T& at(uint32_t index) {
+        if (dim == 0) {
+            return (*data_ptr)[offset];
+        }
+        uint32_t flat_index = offset;
+        if (index >= shape[0]) {
+            throw std::out_of_range("Index " + std::to_string(index) + " out of bounds for dimension 0 with size " + std::to_string(shape[0]));
+        }
+        flat_index += index * strides[0];
+        return (*data_ptr)[flat_index];
     }
 
-    _T& operator[](const std::vector<uint32_t>& indices) {
+    _T& at(const std::vector<uint32_t>& indices) {
         if (indices.size() != shape.size()) {
-            throw std::invalid_argument("Number of indices must match the number of dim.");
+            throw std::invalid_argument("Number of indices must match the number of dimensions.");
         }
         uint32_t flat_index = offset;
         for (uint32_t i = 0; i < shape.size(); ++i) {
             if (indices[i] >= shape[i]) {
-                throw std::out_of_range("Index out of bounds.");
+                throw std::out_of_range("Index " + std::to_string(indices[i]) + " out of bounds for dimension " + std::to_string(i) + " with size " + std::to_string(shape[i]));
             }
             flat_index += indices[i] * strides[i];
         }
@@ -209,15 +291,8 @@ void broadcast(const Array<_T>& array1, const Array<_T>& array2,
     std::vector<uint32_t>& bshape,
     std::vector<uint32_t>& bstrides1, std::vector<uint32_t>& bstrides2) {
 
-    uint32_t result_dim, excess1 = 0, excess2 = 0;
-    if (array1.dim > array2.dim) {
-        result_dim = array1.dim;
-        excess2 = result_dim - array2.dim;
-    }
-    else {
-        result_dim = array2.dim;
-        excess1 = result_dim - array1.dim;
-    }
+    uint32_t result_dim = array1.dim > array2.dim ? array1.dim : array2.dim;
+
     bshape.resize(result_dim); bstrides1.resize(result_dim); bstrides2.resize(result_dim);
 
     int32_t i1 = array1.dim - 1, i2 = array2.dim - 1;

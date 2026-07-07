@@ -30,7 +30,7 @@ public:
         Array<float> output {input.shape};
 
         for (uint32_t i=0; i < output.shape[0]; i++){
-            output[i] = std::tanh(input[i]);
+            output.at(i) = std::tanh(input.at(i));
         }
         if(training) outputCache = output;
 
@@ -47,7 +47,7 @@ public:
         
         Array<float> deriv{prevDeriv.shape};
         for (uint32_t i=0; i < deriv.shape[0]; i++){
-            deriv[i] = prevDeriv[i] * (1 - outputCache[i] * outputCache[i]);
+            deriv.at(i) = prevDeriv.at(i) * (1 - outputCache.at(i) * outputCache.at(i));
         }
         return {deriv};
     }

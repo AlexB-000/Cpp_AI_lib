@@ -33,12 +33,10 @@ public:
         }
 
         if(training) inputCache = input;
-        Array<float> output {input.shape};
+        Array<float> output {input.copy()};
         for (uint32_t i=0; i < output.shape[0]; i++){
-            if (input[i] < 0){
-                output[i] = alpha * input[i];
-            } else {
-                output[i] = input[i];
+            if (output.at(i) < 0){
+                output.at(i) *= alpha;
             }
         }
         return output;
@@ -52,12 +50,10 @@ public:
             throw std::invalid_argument("In ReLU backward : Previous derivative size does not match the expected output size.");
         }
 
-        Array<float> deriv {prevDeriv.shape};
+        Array<float> deriv {prevDeriv.copy()};
         for (uint32_t i=0; i < deriv.shape[0]; i++){
-            if (inputCache[i] <= 0){
-                deriv[i] = alpha * prevDeriv[i];
-            } else {
-                deriv[i] = prevDeriv[i];
+            if (inputCache.at(i) <= 0){
+                deriv.at(i) *= alpha;
             }
         }
         return {deriv};

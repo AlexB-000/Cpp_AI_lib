@@ -43,13 +43,13 @@ public:
         // exp(logit - max)
         double sum = 0.0;
         for (unsigned int i = 0; i < input.shape[0]; ++i) {
-            output[i] = std::exp(input[i] - max_input);
-            sum += output[i];
+            output.at(i) = std::exp(input.at(i) - max_input);
+            sum += output.at(i);
         }
 
         // normalisation
         for (unsigned int i = 0; i < input.shape[0]; ++i) {
-            output[i] /= sum;
+            output.at(i) /= sum;
         }
         if (training) outputCache = output;
         return output;
@@ -67,12 +67,12 @@ public:
             throw std::invalid_argument("In Softmax backward : Previous derivative size does not match the expected output size.");
         }
 
-        Array<float> deriv{prevDeriv.shape, 0.0f};
+        Array<float> deriv{prevDeriv.copy()};
         for (uint32_t k=0; k < deriv.shape[0]; k++){
             for (uint32_t i=0; i < deriv.shape[0]; i++){
                 bool delta = 0.0f;
                 if (i == k) delta = 1.0f;
-                deriv[k] += prevDeriv[i] * outputCache[i] * (delta - outputCache[k]);
+                deriv.at(k) += prevDeriv.at(i) * outputCache.at(i) * (delta - outputCache.at(k));
             }
         }
         return {deriv};

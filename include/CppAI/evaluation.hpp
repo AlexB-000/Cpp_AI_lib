@@ -9,12 +9,12 @@ namespace ClassMetrics {
         Array<float> output = net->forward(*input);
         float predicted;
         if (around_zero){
-            predicted = output[0] >= 0.0f ? 1.0f : -1.0f;
+            predicted = output.at(0) >= 0.0f ? 1.0f : -1.0f;
         }
         else{
-            predicted = output[0] >= 0.5f ? 1.0f : 0.0f;
+            predicted = output.at(0) >= 0.5f ? 1.0f : 0.0f;
         }
-        return predicted == (*target)[0] ? 1 : 0;
+        return predicted == (*target).at(0) ? 1 : 0;
     }
 
     void bin_accuracy_thread(Network* net, const std::vector<Array<float>>* inputs, const std::vector<Array<float>>* targets,
@@ -89,12 +89,12 @@ namespace ClassMetrics {
         Array<float> output = net->forward(*input);
         unsigned int predicted = 0;
         for (unsigned int j=1; j < output.shape[0]; j++){
-            if (output[j] > output[predicted]){
+            if (output.at(j) > output.at(predicted)){
                 predicted = j;
             }
         }
         for (unsigned int j=0; j < target->shape[0]; j++){
-            if ((*target)[j] == 1.0f){
+            if ((*target).at(j) == 1.0f){
                 if (j == predicted)
                     return 1;
                 else
