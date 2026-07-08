@@ -23,6 +23,22 @@ target_include_directories(CppAI
 PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/include
 )
-target_link_libraries(CppAI PUBLIC arrays)
+target_link_libraries(CppAI PUBLIC ndarrays)
 target_compile_features(CppAI PUBLIC cxx_std_17)
-target_compile_options(CppAI PUBLIC -O3)
+target_compile_options(CppAI PUBLIC -O3 -march=native)
+
+include(CheckIPOSupported)
+
+if(PROJECT_IS_TOP_LEVEL)
+    check_ipo_supported(RESULT ipo_supported)
+
+    if(ipo_supported)
+        message(STATUS "IPO enabled")
+        set_property(TARGET CppAI PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+        if(BUILD_EXAMPLES)
+                set_property(TARGET example_affine example_XOR example_dataset_XOR PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+        endif()
+    else()
+        message(STATUS "IPO not supported")
+    endif()
+endif()

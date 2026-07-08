@@ -34,17 +34,12 @@ public:
             throw std::invalid_argument("In Softmax forward : Input size does not match the expected size.");
         }
 
-        Array<float> output {input.shape};
-
         // find max
-        Array<float> max_input = max(input);
+        Array<float> max_input = nd::max(input);
 
         // exp(logit - max)
-        Array<float> sum = 0.0;
-        for (unsigned int i = 0; i < input.shape[0]; ++i) {
-            output.at(i) = std::exp(input.at(i) - max_input.at(i));
-            sum += output.at(i);
-        }
+        Array<float> output = nd::exp(input - max_input);
+        Array<float> sum = nd::sum(output);
 
         // normalisation
         output /= sum;
@@ -64,15 +59,6 @@ public:
         if (prevDeriv.shape[0] != outputSize) {
             throw std::invalid_argument("In Softmax backward : Previous derivative size does not match the expected output size.");
         }
-
-        Array<float> deriv{prevDeriv.copy()};
-        for (uint32_t k=0; k < deriv.shape[0]; k++){
-            for (uint32_t i=0; i < deriv.shape[0]; i++){
-                bool delta = 0.0f;
-                if (i == k) delta = 1.0f;
-                deriv.at(k) += prevDeriv.at(i) * outputCache.at(i) * (delta - outputCache.at(k));
-            }
-        }
-        return {deriv};
+        return {outputCache * (prevDeriv - nd::sum(prevDeriv * outputCache))}; // Softmax derivative
     }
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <stdexcept>
+#include <stdint.h>
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -150,6 +151,29 @@ public:
     defineElementwiseOpInPlace(operator*=, *=)
     defineElementwiseOpInPlace(operator/=, /=)
 
+    Array<_T> operator-() const {
+        Array<_T> result(shape);
+        std::vector<uint32_t> idx(dim, 0);
+        while (true){
+            uint32_t  resultIDX = 0, arrIdx = offset;
+            for (uint32_t i = 0; i < dim; ++i) {
+                resultIDX += idx[i] * result.strides[i];
+                arrIdx += idx[i] * strides[i];
+            }
+            (*result.data_ptr)[resultIDX] = -(*data_ptr)[arrIdx];
+            /* Increment the multi-dimensional index */
+            for (int32_t i = dim - 1; i >= 0; --i) {
+                if (++idx[i] < shape[i]) {
+                    break;
+                }
+                idx[i] = 0;
+                if (i == 0) {
+                    return result;
+                }
+            }
+        }
+    }
+
     Array<_T> T() const {
         if (dim != 2) {
             throw std::invalid_argument("Transpose is only defined for 2D arrays.");
@@ -250,9 +274,9 @@ public:
     }
 
     //MARK: show
-    void show() const {
+    void show(const std::string& shift = "") const {
         if (dim == 0) {
-            std::cout << (*data_ptr)[offset] << std::endl;
+            std::cout << shift << (*data_ptr)[offset] << std::endl;
             return;
         }
         std::cout << "[";
@@ -268,6 +292,9 @@ public:
             uint32_t rows = shape[0];
             uint32_t cols = shape[1];
             for (uint32_t i = 0; i < rows; ++i) {
+                if (i > 0) {
+                    std::cout << " ";
+                }
                 std::cout << "[";
                 for (uint32_t j = 0; j < cols; ++j) {
                     std::cout << (*data_ptr)[i * strides[0] + j * strides[1] + offset];
@@ -277,22 +304,29 @@ public:
                 }
                 std::cout << "]";
                 if (i < rows - 1) {
-                    std::cout << ",\n";
+                    std::cout << ",\n" << shift;
                 }
             }
         } else {
-            std::cout << "Nd Array with dim=" << dim << " and shape=[";
-            for (size_t i = 0; i < shape.size(); ++i) {
-                std::cout << shape[i];
-                if (i < shape.size() - 1) {
-                    std::cout << ", ";
+            for (uint32_t i = 0; i < shape[0]; ++i) {
+                if (i > 0) {
+                    std::cout << " ";
+                }
+                Array<_T> sub_array = (*this)[i];
+                sub_array.show(shift + " ");
+                if (i < shape[0] - 1) {
+                    std::cout << ",\n";
                 }
             }
         }
-        std::cout << "]" << std::endl;
+        std::cout << "]";
+        if (shift.empty()) {
+            std::cout << std::endl;
+        }
     }
 };
 
+//MARK: broadcast
 template<typename _T>
 void broadcast(const Array<_T>& array1, const Array<_T>& array2,
     std::vector<uint32_t>& bshape,

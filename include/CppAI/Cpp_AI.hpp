@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Arrays/cpp_arrays.hpp"
+#include "Arrays/ndarrays.hpp"
 
 #include "preprocessing/train_test_split.hpp"
 #include "evaluation.hpp"

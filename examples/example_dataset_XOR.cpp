@@ -46,6 +46,11 @@ int main(int argc, char* argv[]){
         loading = true;
     }
 
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+    auto t1 = high_resolution_clock::now();
+
     Network net;
     std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, "glorot");
     net.stackLayer(layer1);
@@ -96,7 +101,7 @@ int main(int argc, char* argv[]){
     GD optimizer(&net, &loss);
 
     DataLoader train_dataloader (&train_dataset, 100);
-    optimizer.train(train_dataloader, 50, 1.0f, 1, true);
+    optimizer.train(train_dataloader, 50, 1.0f, 0, true);
 
     std::cout << "## Training completed.\n";
 
@@ -113,6 +118,13 @@ int main(int argc, char* argv[]){
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);
+
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> exe_time = t2 - t1;
+
+    std::cout << "Execution time: " << exe_time.count() << "ms\n";
 
     net.save("xor_dataset_model.bin");
 

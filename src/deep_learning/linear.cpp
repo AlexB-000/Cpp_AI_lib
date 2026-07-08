@@ -8,7 +8,7 @@ Array<float> Linear::forward(const Array<float>& input){
         throw std::invalid_argument("In Linear forward : Input size does not match the expected size.");
     }
     if(training) prevInput = input;
-    return matmul(weights, input) + biases;
+    return nd::matmul(weights, input) + biases;
 }
 
 std::vector<Array<float>> Linear::backward(const Array<float>& prevDeriv){
@@ -18,7 +18,7 @@ std::vector<Array<float>> Linear::backward(const Array<float>& prevDeriv){
     if (prevDeriv.shape[0] != outputSize) {
         throw std::invalid_argument("In Linear backward : Previous derivative size does not match the expected output size.");
     }
-    Array<float> deriv = matmul(prevDeriv, weights);
+    Array<float> deriv = nd::matmul(prevDeriv, weights);
     Array<float> d_biases = prevDeriv;
     Array<float> d_weights {std::vector<unsigned int>{static_cast<unsigned int>(outputSize), static_cast<unsigned int>(inputSize)}, 0};
     for (unsigned int i=0; i<static_cast<unsigned int>(outputSize); i++){

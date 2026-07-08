@@ -1,6 +1,6 @@
 #include <chrono>
 #include <iostream>
-#include "Arrays/cpp_arrays.hpp"
+#include "Arrays/ndarrays.hpp"
 
 int main(){
     Array<float> A({1000, 10000}, 1);
@@ -24,7 +24,7 @@ int main(){
     std::cout << "Element-wise operations time: " << lmntw_exe_time.count() << "ms\n";
 
     auto mmult_t1 = high_resolution_clock::now();
-    Array<float> mmult_result = matmul(A, B);
+    Array<float> mmult_result = nd::matmul(A, B);
     auto mmult_t2 = high_resolution_clock::now();
     duration<double, std::milli> mmult_exe_time = mmult_t2 - mmult_t1;
 
@@ -32,10 +32,35 @@ int main(){
 
     std::cout << "Tests" << std::endl;
     Array<float> a({2, 3}, {1, 2, 3, 4, 0, 6});
+    a.show();
     (a == Array<float>({3}, {1, 0, 3})).show();
-    max(a).show();
-    min(a).show();
-    sum(a).show();
+
+    nd::max(a).show();
+    nd::min(a).show();
+    nd::sum(a).show();
+
+    nd::max(a, {0}).show();
+    nd::min(a, {0}).show();
+    nd::sum(a, {0}).show();
+
+    nd::max(a, {1}).show();
+    nd::min(a, {1}).show();
+    nd::sum(a, {1}).show();
+
+    nd::max(a, {0}, true).show();
+    nd::min(a, {0}, true).show();
+    nd::sum(a, {0}, true).show();
+
+    nd::max(a, {1}, true).show();
+    nd::min(a, {1}, true).show();
+    nd::sum(a, {1}, true).show();
+
+    (a == nd::max(a, {0})).show();
+    (a == nd::max(a, {0}, true)).show();
+    (a == nd::max(a, {1}, true)).show();
+
+    Array<bool> b({2, 2, 2}, {1, 0, 1, 0, 1, 0, 1, 0});
+    b.show();
 }
 
 // int main(){

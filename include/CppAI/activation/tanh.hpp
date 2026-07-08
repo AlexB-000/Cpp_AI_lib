@@ -27,11 +27,8 @@ public:
         if (input.shape[0] != inputSize) {
             throw std::invalid_argument("In Tanh forward : Input size does not match the expected size.");
         }
-        Array<float> output {input.shape};
-
-        for (uint32_t i=0; i < output.shape[0]; i++){
-            output.at(i) = std::tanh(input.at(i));
-        }
+        Array<float> output = nd::tanh(input);
+        
         if(training) outputCache = output;
 
         return output;

@@ -91,7 +91,7 @@ int main(){
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 50, 100, 1.0f, 2, false);
+    optimizer.train(X_train, y_train, 50, 100, 1.0f, 0, false);
 
     params = net.get_parameters();
     std::cout << "Learned Parameters:\n";

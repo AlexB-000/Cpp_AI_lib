@@ -5,9 +5,17 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-add_library(arrays INTERFACE)
-target_include_directories(arrays
+add_library(ndarrays INTERFACE)
+target_sources(
+    ndarrays
 INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/include
+    FILE_SET HEADERS
+    BASE_DIRS
+      ${CMAKE_CURRENT_LIST_DIR}/include
+    FILES
+      ${CMAKE_CURRENT_LIST_DIR}/include/Arrays/array.hpp
+      ${CMAKE_CURRENT_LIST_DIR}/include/Arrays/array_math.hpp
+      ${CMAKE_CURRENT_LIST_DIR}/include/Arrays/ndarrays.hpp
+      ${CMAKE_CURRENT_LIST_DIR}/include/Arrays/utils.hpp
 )
-target_compile_features(arrays INTERFACE cxx_std_17)
+target_compile_features(ndarrays INTERFACE cxx_std_17)

@@ -1,75 +1,208 @@
 #pragma once
-#include "array.hpp"
+#include <cmath>
+#include "Arrays/array.hpp"
 
-template<typename T>
-Array<T> max(const Array<T>& arr, const std::vector<uint32_t>& axes = {}) {
-    std::vector<uint32_t> idx(arr.dim, 0);
-    Array<T> max_val = arr.at(idx);
-    while (true){
-        uint32_t flat_index = arr.offset;
-        for (size_t i = 0; i < arr.dim; ++i) {
-            flat_index += idx[i] * arr.strides[i];
-        }
-        if ((*arr.data_ptr)[flat_index] > max_val.at(0)) {
-            max_val = (*arr.data_ptr)[flat_index];
-        }
-        /* Increment the multi-dimensional index */
-        for (int32_t i = arr.dim - 1; i >= 0; --i) {
-            if (++idx[i] < arr.shape[i]) {
-                break;
+namespace nd {
+    //MARK: max
+    template<typename T>
+    Array<T> max(const Array<T>& arr, std::vector<uint32_t> axes = {}, bool keepdims = false) {
+        if (axes.size() == 0) {
+            axes.resize(arr.dim);
+            for (uint32_t i = 0; i < arr.dim; ++i) {
+                axes[i] = i;
             }
-            idx[i] = 0;
-            if (i == 0) {
-                return max_val;
+        }
+        std::vector<uint32_t> new_shape;
+        for (uint32_t i = 0; i < arr.dim; ++i) {
+            if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
+                // this axis is not being reduced, so keep its size and stride
+                new_shape.push_back(arr.shape[i]);
+            } else if (keepdims) {
+                new_shape.push_back(1);
+            }
+        }
+        Array<T> result(new_shape);
+        Array<bool> initialized(new_shape, false);
+
+        std::vector<uint32_t> strides;
+        uint32_t new_idx = 0;
+        for (uint32_t i = 0; i < arr.dim; ++i) {
+            if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
+                // this axis is not being reduced, so keep its size and stride
+                strides.push_back(result.strides[new_idx++]);
+            } else {
+                strides.push_back(0);
+                if (keepdims) {
+                    new_idx++;
+                }
+            }
+        }
+
+        std::vector<uint32_t> idx(arr.dim, 0);
+        while (true){
+            uint32_t  resultIdx = 0, arrIdx = arr.offset;
+            for (uint32_t i = 0; i < arr.dim; ++i) {
+                resultIdx += idx[i] * strides[i];
+                arrIdx += idx[i] * arr.strides[i];
+            }
+            if (!(*initialized.data_ptr)[resultIdx] || (*arr.data_ptr)[arrIdx] > (*result.data_ptr)[resultIdx]) {
+                (*result.data_ptr)[resultIdx] = (*arr.data_ptr)[arrIdx];
+                (*initialized.data_ptr)[resultIdx] = true;
+            }
+            /* Increment the multi-dimensional index */
+            for (int32_t i = arr.dim - 1; i >= 0; --i) {
+                if (++idx[i] < arr.shape[i]) {
+                    break;
+                }
+                idx[i] = 0;
+                if (i == 0) {
+                    return result;
+                }
             }
         }
     }
-}
 
-template<typename T>
-Array<T> min(const Array<T>& arr, const std::vector<uint32_t>& axes = {}) {
-    std::vector<uint32_t> idx(arr.dim, 0);
-    Array<T> min_val = arr.at(idx);
-    while (true){
-        uint32_t flat_index = arr.offset;
-        for (size_t i = 0; i < arr.dim; ++i) {
-            flat_index += idx[i] * arr.strides[i];
-        }
-        if ((*arr.data_ptr)[flat_index] < min_val.at(0)) {
-            min_val = (*arr.data_ptr)[flat_index];
-        }
-        /* Increment the multi-dimensional index */
-        for (int32_t i = arr.dim - 1; i >= 0; --i) {
-            if (++idx[i] < arr.shape[i]) {
-                break;
+    //MARK: max
+    template<typename T>
+    Array<T> min(const Array<T>& arr, std::vector<uint32_t> axes = {}, bool keepdims = false) {
+        if (axes.size() == 0) {
+            axes.resize(arr.dim);
+            for (uint32_t i = 0; i < arr.dim; ++i) {
+                axes[i] = i;
             }
-            idx[i] = 0;
-            if (i == 0) {
-                return min_val;
+        }
+        std::vector<uint32_t> new_shape;
+        for (uint32_t i = 0; i < arr.dim; ++i) {
+            if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
+                // this axis is not being reduced, so keep its size and stride
+                new_shape.push_back(arr.shape[i]);
+            } else if (keepdims) {
+                new_shape.push_back(1);
+            }
+        }
+        Array<T> result(new_shape);
+        Array<bool> initialized(new_shape, false);
+
+        std::vector<uint32_t> strides;
+        uint32_t new_idx = 0;
+        for (uint32_t i = 0; i < arr.dim; ++i) {
+            if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
+                // this axis is not being reduced, so keep its size and stride
+                strides.push_back(result.strides[new_idx++]);
+            } else {
+                strides.push_back(0);
+                if (keepdims) {
+                    new_idx++;
+                }
+            }
+        }
+
+        std::vector<uint32_t> idx(arr.dim, 0);
+        while (true){
+            uint32_t  resultIdx = 0, arrIdx = arr.offset;
+            for (uint32_t i = 0; i < arr.dim; ++i) {
+                resultIdx += idx[i] * strides[i];
+                arrIdx += idx[i] * arr.strides[i];
+            }
+            if (!(*initialized.data_ptr)[resultIdx] || (*arr.data_ptr)[arrIdx] < (*result.data_ptr)[resultIdx]) {
+                (*result.data_ptr)[resultIdx] = (*arr.data_ptr)[arrIdx];
+                (*initialized.data_ptr)[resultIdx] = true;
+            }
+            /* Increment the multi-dimensional index */
+            for (int32_t i = arr.dim - 1; i >= 0; --i) {
+                if (++idx[i] < arr.shape[i]) {
+                    break;
+                }
+                idx[i] = 0;
+                if (i == 0) {
+                    return result;
+                }
             }
         }
     }
-}
 
-template<typename T>
-Array<T> sum(const Array<T>& arr, const std::vector<uint32_t>& axes = {}) {
-    std::vector<uint32_t> idx(arr.dim, 0);
-    Array<T> sum_val = T();
-    while (true){
-        uint32_t flat_index = arr.offset;
-        for (size_t i = 0; i < arr.dim; ++i) {
-            flat_index += idx[i] * arr.strides[i];
-        }
-        sum_val += (*arr.data_ptr)[flat_index];
-        /* Increment the multi-dimensional index */
-        for (int32_t i = arr.dim - 1; i >= 0; --i) {
-            if (++idx[i] < arr.shape[i]) {
-                break;
+    //MARK: sum
+    template<typename T>
+    Array<T> sum(const Array<T>& arr, std::vector<uint32_t> axes = {}, bool keepdims = false) {
+        if (axes.size() == 0) {
+            axes.resize(arr.dim);
+            for (uint32_t i = 0; i < arr.dim; ++i) {
+                axes[i] = i;
             }
-            idx[i] = 0;
-            if (i == 0) {
-                return sum_val;
+        }
+        std::vector<uint32_t> new_shape;
+        for (uint32_t i = 0; i < arr.dim; ++i) {
+            if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
+                // this axis is not being reduced, so keep its size and stride
+                new_shape.push_back(arr.shape[i]);
+            } else if (keepdims) {
+                new_shape.push_back(1);
+            }
+        }
+        Array<T> result(new_shape);
+
+        std::vector<uint32_t> strides;
+        uint32_t new_idx = 0;
+        for (uint32_t i = 0; i < arr.dim; ++i) {
+            if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
+                // this axis is not being reduced, so keep its size and stride
+                strides.push_back(result.strides[new_idx++]);
+            } else {
+                strides.push_back(0);
+                if (keepdims) {
+                    new_idx++;
+                }
+            }
+        }
+
+        std::vector<uint32_t> idx(arr.dim, 0);
+        while (true){
+            uint32_t  resultIdx = 0, arrIdx = arr.offset;
+            for (uint32_t i = 0; i < arr.dim; ++i) {
+                resultIdx += idx[i] * strides[i];
+                arrIdx += idx[i] * arr.strides[i];
+            }
+            (*result.data_ptr)[resultIdx] += (*arr.data_ptr)[arrIdx];
+
+            /* Increment the multi-dimensional index */
+            for (int32_t i = arr.dim - 1; i >= 0; --i) {
+                if (++idx[i] < arr.shape[i]) {
+                    break;
+                }
+                idx[i] = 0;
+                if (i == 0) {
+                    return result;
+                }
             }
         }
     }
+
+    #define defineStdFuction(func) \
+    template<typename T> \
+    Array<T> func(const Array<T>& arr) { \
+        Array<T> result(arr.shape); \
+        std::vector<uint32_t> idx(arr.dim, 0); \
+        while (true){ \
+            uint32_t  resultIDX = 0, arrIdx = arr.offset; \
+            for (uint32_t i = 0; i < arr.dim; ++i) { \
+                resultIDX += idx[i] * result.strides[i]; \
+                arrIdx += idx[i] * arr.strides[i]; \
+            } \
+            (*result.data_ptr)[resultIDX] = std::func((*arr.data_ptr)[arrIdx]); \
+            /* Increment the multi-dimensional index */ \
+            for (int32_t i = arr.dim - 1; i >= 0; --i) { \
+                if (++idx[i] < arr.shape[i]) { \
+                    break; \
+                } \
+                idx[i] = 0; \
+                if (i == 0) { \
+                    return result; \
+                } \
+            } \
+        } \
+    }
+    defineStdFuction(abs)
+    defineStdFuction(exp)
+    defineStdFuction(log)
+    defineStdFuction(tanh)
 }
