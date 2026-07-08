@@ -20,8 +20,8 @@ std::vector<std::vector<Array<float>>> train_test_split(std::vector<Array<float>
         unsigned int data_size = X.size();
         std::uniform_int_distribution<> dis(0, data_size - 1);
         unsigned int idx = dis(gen);
-        X_test.push_back(X[idx]);
-        y_test.push_back(y[idx]);
+        X_test.emplace_back(X[idx]);
+        y_test.emplace_back(y[idx]);
 
         std::swap(X[idx], X.back());
         std::swap(y[idx], y.back());

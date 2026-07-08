@@ -18,7 +18,7 @@ void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
     std::vector<std::thread> threads;
 
     for (int i = 0; i < model->parameters.size(); ++i) {
-        threads.push_back(std::thread(&GD::thread_step, this, model->parameters[i], &gradients[i], lr));
+        threads.emplace_back(&GD::thread_step, this, model->parameters[i], &gradients[i], lr);
     }
     for (std::thread& t : threads) {
         t.join();
@@ -121,9 +121,10 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
                 }
                 const unsigned int data_start_index = i + t * samples_per_thread;
                 const unsigned int count = std::min(samples_per_thread, actual_batch_size - t * samples_per_thread);
-                threads.push_back(std::thread(&GD::train_oneThread, this, *model,
+                threads.emplace_back(&GD::train_oneThread, this, *model,
                     &X, &y, &batch_gradient, &batch_loss, grad_coeff,
-                    t, data_start_index, count));
+                    t, data_start_index, count
+                );
             }
             for (std::thread& t : threads) {
                 t.join();
@@ -206,9 +207,10 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
                 unsigned int start_index = t * samples_per_thread;
                 unsigned int count = std::min(samples_per_thread, batch_size - start_index);
                 
-                threads.push_back(std::thread(&GD::train_oneThread_batch, this, *model,
+                threads.emplace_back(&GD::train_oneThread_batch, this, *model,
                     &batch, &batch_gradient, &epoch_loss, grad_coeff,
-                    t, start_index, count));
+                    t, start_index, count
+                );
             }
             for (auto& t : threads) {
                 t.join();

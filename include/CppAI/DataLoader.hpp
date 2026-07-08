@@ -26,7 +26,7 @@ public:
             if (start_index + i >= dataset->size()) {
                 break; // Stop if we exceed the dataset size
             }
-            batch.push_back((*dataset)[start_index + i]);
+            batch.emplace_back((*dataset)[start_index + i]);
         }
         return batch;
     }

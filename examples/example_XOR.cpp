@@ -19,11 +19,11 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t 
     for (unsigned int i=0; i<size; i++){
         float value1 = dis(gen);
         float value2 = dis(gen);
-        data.emplace_back(Array<float>{{2}, {value1, value2}});
+        data.emplace_back(std::vector<uint32_t>{2}, std::vector<float>{value1, value2});
         if (value1 && value2 || (!value1 && !value2))
-            target.emplace_back(Array<float>{{1}, {0.0f}});
+            target.emplace_back(std::vector<uint32_t>{1}, std::vector<float>{0.0f});
         else
-            target.emplace_back(Array<float>{{1}, {1.0f}});
+            target.emplace_back(std::vector<uint32_t>{1}, std::vector<float>{1.0f});
     }
     return {data, target};
 }

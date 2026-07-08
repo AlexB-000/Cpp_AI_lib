@@ -20,8 +20,8 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t 
 
     for (unsigned int i=0; i<size; i++){
         float value = dis(gen)/10.0f;
-        data.emplace_back(Array<float>{{1}, {value}});
-        target.emplace_back(Array<float>{{1}, {value*2 + 1}});
+        data.emplace_back(std::vector<uint32_t>{1}, std::vector<float>{value});
+        target.emplace_back(std::vector<uint32_t>{1}, std::vector<float>{value*2 + 1});
     }
     return {data, target};
 }

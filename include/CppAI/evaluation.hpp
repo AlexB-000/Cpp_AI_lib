@@ -39,7 +39,7 @@ namespace ClassMetrics {
 
         for (uint32_t i=0; i<X.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(X.size() - i));
-            threads.push_back(std::thread(bin_accuracy_thread, &net, &X, &y, &thread_results, i, batch_size, around_zero));
+            threads.emplace_back(bin_accuracy_thread, &net, &X, &y, &thread_results, i, batch_size, around_zero);
         }
         for (std::thread& t : threads){
             t.join();
@@ -70,9 +70,9 @@ namespace ClassMetrics {
 
         for (uint32_t i=0; i<dataset.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(dataset.size() - i));
-            threads.push_back(std::thread(bin_accuracy_thread_dataset,
+            threads.emplace_back(bin_accuracy_thread_dataset,
                 &net, &dataset, &thread_results, i, batch_size, around_zero
-            ));
+            );
         }
         for (std::thread& t : threads){
             t.join();
@@ -124,7 +124,7 @@ namespace ClassMetrics {
 
         for (uint32_t i=0; i<X.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(X.size() - i));
-            threads.push_back(std::thread(multiclass_accuracy_thread, &net, &X, &y, &thread_results, i, batch_size));
+            threads.emplace_back(multiclass_accuracy_thread, &net, &X, &y, &thread_results, i, batch_size);
         }
         for (std::thread& t : threads){
             t.join();
@@ -153,7 +153,7 @@ namespace ClassMetrics {
 
         for (uint32_t i=0; i<dataset.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(dataset.size() - i));
-            threads.push_back(std::thread(multiclass_accuracy_thread_dataset, &net, &dataset, &thread_results, i, batch_size));
+            threads.emplace_back(multiclass_accuracy_thread_dataset, &net, &dataset, &thread_results, i, batch_size);
         }
         for (std::thread& t : threads){
             t.join();

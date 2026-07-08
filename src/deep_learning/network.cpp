@@ -1,7 +1,7 @@
 #include "CppAI/deep_learning/network.hpp"
 
 void Network::stackLayer(const std::shared_ptr<Module> layer){
-	modules.push_back(layer);
+	modules.emplace_back(layer);
 	std::vector< Array<float>* > layerParams = layer->get_parameters();
 	parameters.insert(parameters.end(), layerParams.begin(), layerParams.end());
 }
