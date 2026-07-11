@@ -35,7 +35,7 @@ namespace ClassMetrics {
 
         uint32_t thread_count = std::thread::hardware_concurrency() - 1;
         if (!multithreading) thread_count = 1;
-        unsigned int samples_per_thread = X.size() / thread_count + 1;
+        unsigned int samples_per_thread = (X.size() + thread_count -1) / thread_count;
 
         for (uint32_t i=0; i<X.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(X.size() - i));
@@ -66,7 +66,7 @@ namespace ClassMetrics {
 
         uint32_t thread_count = std::thread::hardware_concurrency() - 1;
         if (!multithreading) thread_count = 1;
-        unsigned int samples_per_thread = dataset.size() / thread_count + 1;
+        unsigned int samples_per_thread = (dataset.size() + thread_count - 1) / thread_count;
 
         for (uint32_t i=0; i<dataset.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(dataset.size() - i));
@@ -120,7 +120,7 @@ namespace ClassMetrics {
 
         uint32_t thread_count = std::thread::hardware_concurrency() - 1;
         if (!multithreading) thread_count = 1;
-        unsigned int samples_per_thread = X.size() / thread_count + 1;
+        unsigned int samples_per_thread = (X.size() + thread_count -1) / thread_count;
 
         for (uint32_t i=0; i<X.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(X.size() - i));
@@ -149,7 +149,7 @@ namespace ClassMetrics {
 
         uint32_t thread_count = std::thread::hardware_concurrency() - 1;
         if (!multithreading) thread_count = 1;
-        unsigned int samples_per_thread = dataset.size() / thread_count + 1;
+        unsigned int samples_per_thread = (dataset.size() + thread_count - 1) / thread_count;
 
         for (uint32_t i=0; i<dataset.size(); i+= samples_per_thread){
             unsigned int batch_size = std::min(samples_per_thread, static_cast<uint32_t>(dataset.size() - i));

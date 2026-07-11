@@ -10,7 +10,7 @@ protected:
     unsigned int nb_batches;
 public:
     DataLoader(Dataset* inDataset, size_t inBatchSize) : dataset(inDataset), batch_size(inBatchSize) {
-        nb_batches = dataset->size() / batch_size + (dataset->size() % batch_size != 0 ? 1 : 0);
+        nb_batches = (dataset->size() + batch_size - 1) / batch_size;
     }
 
     size_t get_dataset_size() const { return dataset->size(); }
