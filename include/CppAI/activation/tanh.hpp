@@ -41,11 +41,6 @@ public:
         if (prevDeriv.shape[0] != outputSize) {
             throw std::invalid_argument("In Tanh backward : Previous derivative size does not match the expected output size.");
         }
-        
-        Array<float> deriv{prevDeriv.shape};
-        for (uint32_t i=0; i < deriv.shape[0]; i++){
-            deriv.at(i) = prevDeriv.at(i) * (1 - outputCache.at(i) * outputCache.at(i));
-        }
-        return {deriv};
+        return {prevDeriv * (Array<float>{1.0f} - outputCache * outputCache)};
     }
 };

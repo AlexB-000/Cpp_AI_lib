@@ -35,14 +35,13 @@ public:
         }
 
         // find max
-        Array<float> max_input = nd::max(input);
+        Array<float> max_input = nd::max(input, {input.dim-1}, true);
 
         // exp(logit - max)
         Array<float> output = nd::exp(input - max_input);
-        Array<float> sum = nd::sum(output);
 
         // normalisation
-        output /= sum;
+        output /= nd::sum(output, {output.dim-1}, true);
         
         if (training) outputCache = output;
         return output;
@@ -59,6 +58,6 @@ public:
         if (prevDeriv.shape[0] != outputSize) {
             throw std::invalid_argument("In Softmax backward : Previous derivative size does not match the expected output size.");
         }
-        return {outputCache * (prevDeriv - nd::sum(prevDeriv * outputCache))}; // Softmax derivative
+        return {outputCache * (prevDeriv - nd::sum(prevDeriv * outputCache, {prevDeriv.dim-1}, true))}; // Softmax derivative
     }
 };
