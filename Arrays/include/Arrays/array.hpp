@@ -66,6 +66,13 @@ public:
 
     #define defineElementwiseOp(op, op_sign, return_type) \
     Array<return_type> op(const Array<_T>& other) const { \
+        if (owner && other.owner && shape==other.shape){ \
+            Array<return_type> result(shape); \
+            /* operands aren't views and have the same shape so we optimize and just go through the memory */ \
+            for (uint32_t i=0; i<data_ptr->size(); ++i) \
+                (*result.data_ptr)[i] = (*data_ptr)[i] opsign (*other.data_ptr)[i]; \
+            return result; \
+        } \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
         broadcast(*this, other, bshape, bstrides1, bstrides2); \
         Array<return_type> result(bshape); \
@@ -100,6 +107,12 @@ public:
 
     #define defineElementwiseOpInPlace(op, op_sign) \
     Array<_T>& op(const Array<_T>& other) { \
+        if (owner && other.owner && shape==other.shape){ \
+            /* operands aren't views and have the same shape so we optimize and just go through the memory */ \
+            for (uint32_t i=0; i<data_ptr->size(); ++i) \
+                (*data_ptr)[i] opsign (*other.data_ptr)[i]; \
+            return *this; \
+        } \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
         broadcast(*this, other, bshape, bstrides1, bstrides2); \
         if (bshape != shape) { \
@@ -132,7 +145,7 @@ public:
     inline Array<_T>& op(const _T scalar){ \
         return op(Array<_T>(scalar)); \
     }
-    
+
     defineElementwiseOp(operator+, +, _T)
     defineElementwiseOp(operator-, -, _T)
     defineElementwiseOp(operator*, *, _T)
