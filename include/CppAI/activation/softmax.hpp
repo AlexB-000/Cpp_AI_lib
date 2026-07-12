@@ -42,13 +42,17 @@ public:
         }
 
         // exp(logit - max)
+        float sum;
         Array<float> output(input.shape);
         for (uint32_t i=0; i<output.shape[0]; i++){
             (*output.data_ptr)[i] = std::exp((*input.data_ptr)[i * input.strides[0] + input.offset] - max_input);
+            sum += (*output.data_ptr)[i];
         }
 
         // normalisation
-        output /= nd::sum(output, {output.dim-1}, true);
+        for (uint32_t i=0; i<output.shape[0]; i++){
+            (*output.data_ptr)[i] /= sum;
+        }
         
         if (training) outputCache = output;
         return output;
@@ -65,12 +69,22 @@ public:
         if (prevDeriv.shape[0] != outputSize) {
             throw std::invalid_argument("In Softmax backward : Previous derivative size does not match the expected output size.");
         }
-        float sum = nd::sum(prevDeriv * outputCache, {prevDeriv.dim-1}, true).at(0);
-
         Array<float> deriv(prevDeriv.shape);
         for (uint32_t i=0; i<deriv.shape[0]; i++){
-            (*deriv.data_ptr)[i] = (*outputCache.data_ptr)[i * outputCache.strides[0]] *
-                ((*prevDeriv.data_ptr)[i * prevDeriv.strides[0] + prevDeriv.offset] - sum);
+            for (uint32_t k=0; k<i; k++){
+                // i != k
+                (*deriv.data_ptr)[k] -= (*outputCache.data_ptr)[i] * (*outputCache.data_ptr)[k] *
+                    (*prevDeriv.data_ptr)[i * prevDeriv.strides[0] + prevDeriv.offset];
+            }
+            // i = k
+            (*deriv.data_ptr)[i] += (*outputCache.data_ptr)[i] * (1.0f - (*outputCache.data_ptr)[i]) * 
+                    (*prevDeriv.data_ptr)[i * prevDeriv.strides[0] + prevDeriv.offset];
+
+            for (uint32_t k=i; k<deriv.shape[0]; k++){
+                // i != k
+                (*deriv.data_ptr)[k] -= (*outputCache.data_ptr)[i] * (*outputCache.data_ptr)[k] *
+                    (*prevDeriv.data_ptr)[i * prevDeriv.strides[0] + prevDeriv.offset];
+            }
         }
         return {deriv}; // Softmax derivative
     }
