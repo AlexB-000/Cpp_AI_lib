@@ -70,7 +70,7 @@ public:
             Array<return_type> result(shape); \
             /* operands aren't views and have the same shape so we optimize and just go through the memory */ \
             for (uint32_t i=0; i<data_ptr->size(); ++i) \
-                (*result.data_ptr)[i] = (*data_ptr)[i] opsign (*other.data_ptr)[i]; \
+                (*result.data_ptr)[i] = (*data_ptr)[i] op_sign (*other.data_ptr)[i]; \
             return result; \
         } \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
@@ -110,7 +110,7 @@ public:
         if (owner && other.owner && shape==other.shape){ \
             /* operands aren't views and have the same shape so we optimize and just go through the memory */ \
             for (uint32_t i=0; i<data_ptr->size(); ++i) \
-                (*data_ptr)[i] opsign (*other.data_ptr)[i]; \
+                (*data_ptr)[i] op_sign (*other.data_ptr)[i]; \
             return *this; \
         } \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
