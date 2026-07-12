@@ -207,17 +207,14 @@ public:
         if (indices.size() > shape.size()) {
             throw std::invalid_argument("Number of indices must not exceed the number of dimensions.");
         }
+        std::vector<uint32_t> new_shape(shape.begin()+indices.size(), shape.end());
+        std::vector<uint32_t> new_strides(strides.begin()+indices.size(), strides.end());
         uint32_t new_offset = offset;
-        std::vector<uint32_t> new_shape, new_strides;
         for (size_t i = 0; i < indices.size(); ++i) {
             if (indices[i] >= shape[i]) {
                 throw std::out_of_range("Index " + std::to_string(indices[i]) + " out of bounds for dimension " + std::to_string(i) + " with size " + std::to_string(shape[i]));
             }
             new_offset += indices[i] * strides[i];
-        }
-        for (size_t i = indices.size(); i < shape.size(); ++i) {
-            new_shape.push_back(shape[i]);
-            new_strides.push_back(strides[i]);
         }
         return Array<_T>(new_shape.size(), new_offset, false, new_shape, new_strides, data_ptr);
     }

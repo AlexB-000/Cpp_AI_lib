@@ -12,26 +12,26 @@ namespace nd {
                 axes[i] = i;
             }
         }
-        std::vector<uint32_t> new_shape;
+        std::vector<uint32_t> new_shape(arr.dim);
         for (uint32_t i = 0; i < arr.dim; ++i) {
             if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
                 // this axis is not being reduced, so keep its size and stride
-                new_shape.push_back(arr.shape[i]);
+                new_shape[i] = arr.shape[i];
             } else if (keepdims) {
-                new_shape.push_back(1);
+                new_shape[i] = 1;
             }
         }
         Array<T> result(new_shape);
         Array<bool> initialized(new_shape, false);
 
-        std::vector<uint32_t> strides;
+        std::vector<uint32_t> strides(arr.dim);
         uint32_t new_idx = 0;
         for (uint32_t i = 0; i < arr.dim; ++i) {
             if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
                 // this axis is not being reduced, so keep its size and stride
-                strides.push_back(result.strides[new_idx++]);
+                strides[i] = result.strides[new_idx++];
             } else {
-                strides.push_back(0);
+                strides[i] = 0;
                 if (keepdims) {
                     new_idx++;
                 }
@@ -71,26 +71,26 @@ namespace nd {
                 axes[i] = i;
             }
         }
-        std::vector<uint32_t> new_shape;
+        std::vector<uint32_t> new_shape(arr.dim);
         for (uint32_t i = 0; i < arr.dim; ++i) {
             if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
                 // this axis is not being reduced, so keep its size and stride
-                new_shape.push_back(arr.shape[i]);
+                new_shape[i] = arr.shape[i];
             } else if (keepdims) {
-                new_shape.push_back(1);
+                new_shape[i] = 1;
             }
         }
         Array<T> result(new_shape);
         Array<bool> initialized(new_shape, false);
 
-        std::vector<uint32_t> strides;
+        std::vector<uint32_t> strides(arr.dim);
         uint32_t new_idx = 0;
         for (uint32_t i = 0; i < arr.dim; ++i) {
             if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
                 // this axis is not being reduced, so keep its size and stride
-                strides.push_back(result.strides[new_idx++]);
+                strides[i] = result.strides[new_idx++];
             } else {
-                strides.push_back(0);
+                strides[i] = 0;
                 if (keepdims) {
                     new_idx++;
                 }
@@ -130,25 +130,25 @@ namespace nd {
                 axes[i] = i;
             }
         }
-        std::vector<uint32_t> new_shape;
+        std::vector<uint32_t> new_shape(arr.dim);
         for (uint32_t i = 0; i < arr.dim; ++i) {
             if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
                 // this axis is not being reduced, so keep its size and stride
-                new_shape.push_back(arr.shape[i]);
+                new_shape[i] = arr.shape[i];
             } else if (keepdims) {
-                new_shape.push_back(1);
+                new_shape[i] = 1;
             }
         }
         Array<T> result(new_shape);
 
-        std::vector<uint32_t> strides;
+        std::vector<uint32_t> strides(arr.dim);
         uint32_t new_idx = 0;
         for (uint32_t i = 0; i < arr.dim; ++i) {
             if (std::find(axes.begin(), axes.end(), i) == axes.end()) {
                 // this axis is not being reduced, so keep its size and stride
-                strides.push_back(result.strides[new_idx++]);
+                strides[i] = result.strides[new_idx++];
             } else {
-                strides.push_back(0);
+                strides[i] = 0;
                 if (keepdims) {
                     new_idx++;
                 }
