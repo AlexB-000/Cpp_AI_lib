@@ -17,9 +17,10 @@ public:
             throw std::invalid_argument("In BCELoss : Input size does not match the expected size.");
         }
 
-        float loss = -(target.at(0) * std::log(predicted.at(0) + _epsilon) +
-                       (1.0f - target.at(0)) * std::log(1.0f - predicted.at(0) + _epsilon));
-        gradient.at(0) = ((1.0f - target.at(0)) / (1.0f - predicted.at(0) + _epsilon)) - (target.at(0) / (predicted.at(0) + _epsilon));
+        float loss = -((*target.data_ptr)[target.offset] * std::log((*predicted.data_ptr)[predicted.offset] + _epsilon) +
+                       (1.0f - (*target.data_ptr)[target.offset]) * std::log(1.0f - (*predicted.data_ptr)[predicted.offset] + _epsilon));
+        (*gradient.data_ptr)[0] = ((1.0f - (*target.data_ptr)[target.offset]) / (1.0f - (*predicted.data_ptr)[predicted.offset] + _epsilon))
+                                    - ((*target.data_ptr)[target.offset] / ((*predicted.data_ptr)[predicted.offset] + _epsilon));
         return loss;
     }
 };

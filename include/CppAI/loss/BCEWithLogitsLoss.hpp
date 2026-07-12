@@ -15,9 +15,12 @@ public:
         if (predicted.shape[0] != size) {
             throw std::invalid_argument("In BCEWithLogitsLoss : Input size does not match the expected size.");
         }
-
-        float loss = std::log(1 + std::exp(predicted.at(0))) - target.at(0) * predicted.at(0); // BCEWithLogitsLoss formula
-        gradient.at(0) = 1.0f / (1.0f + std::exp(-predicted.at(0))) - target.at(0); // Sigmoid(predicted) - target
+        // BCEWithLogitsLoss formula
+        float loss = std::log(1.0f + std::exp((*predicted.data_ptr)[predicted.offset])) -
+                     (*target.data_ptr)[target.offset] * (*predicted.data_ptr)[predicted.offset];
+        // Sigmoid(predicted) - target
+        (*gradient.data_ptr)[0] = 1.0f / (1.0f + std::exp(-(*predicted.data_ptr)[predicted.offset])) -
+                                (*target.data_ptr)[target.offset];
         return loss;
     }
 };

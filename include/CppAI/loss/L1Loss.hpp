@@ -14,15 +14,15 @@ public:
         if (predicted.shape[0] != size) {
             throw std::invalid_argument("In L1Loss : Input size does not match the expected size.");
         }
-
-        float loss = nd::sum(nd::abs(predicted - target)).at(0);
-
-        for (uint32_t i = 0; i < predicted.shape[0]; ++i) {
-            if (target.at(i) - predicted.at(i) < 0){
-                gradient.at(i) = -1 / static_cast<float>(size);
+        float loss = 0;
+        for (uint32_t i = 0; i < gradient.shape[0]; ++i) {
+            const float l = (*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] - (*target.data_ptr)[i*target.strides[0] + target.offset];
+            loss += std::abs(l);
+            if (l < 0){
+                (*gradient.data_ptr)[i] = -1 / static_cast<float>(size);
             }
             else{
-                gradient.at(i) = 1 / static_cast<float>(size);
+                (*gradient.data_ptr)[i] = 1 / static_cast<float>(size);
             }
         }
         return loss / static_cast<float>(size);

@@ -27,7 +27,10 @@ public:
         if (input.shape[0] != inputSize) {
             throw std::invalid_argument("In Tanh forward : Input size does not match the expected size.");
         }
-        Array<float> output = nd::tanh(input);
+        Array<float> output(input.shape);
+        for (uint32_t i=0; i<output.shape[0]; i++){
+            (*output.data_ptr)[i] = std::tanh((*input.data_ptr)[i * input.strides[0] + input.offset]);
+        }
         
         if(training) outputCache = output;
 
@@ -41,6 +44,14 @@ public:
         if (prevDeriv.shape[0] != outputSize) {
             throw std::invalid_argument("In Tanh backward : Previous derivative size does not match the expected output size.");
         }
-        return {prevDeriv * (Array<float>{1.0f} - outputCache * outputCache)};
+        Array<float> deriv(prevDeriv.shape);
+        for (uint32_t i=0; i<deriv.shape[0]; i++){
+            (*deriv.data_ptr)[i] = (*prevDeriv.data_ptr)[i * prevDeriv.strides[0] + prevDeriv.offset] *
+                (1.0f - 
+                    (*outputCache.data_ptr)[i * outputCache.strides[0]] *
+                    (*outputCache.data_ptr)[i * outputCache.strides[0]]
+            );
+        }
+        return {deriv};
     }
 };

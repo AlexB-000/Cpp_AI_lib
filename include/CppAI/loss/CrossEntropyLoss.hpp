@@ -16,7 +16,13 @@ public:
         if (predicted.shape[0] != size) {
             throw std::invalid_argument("In CrossEntropyLoss : Input size does not match the expected size.");
         }
-        gradient = -target / (predicted + _epsilon);
-        return -nd::sum(target * nd::log(predicted + _epsilon)).at(0);
+        float loss = 0;
+        for (uint32_t i=0; i<gradient.shape[0]; i++){
+            (*gradient.data_ptr)[i] = -(*target.data_ptr)[i*target.strides[0] + target.offset]
+                                      / ((*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] + _epsilon);
+            loss -= (*target.data_ptr)[i*target.strides[0] + target.offset]
+                    * std::log((*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] + _epsilon);
+        }
+        return loss;
     }
 };
