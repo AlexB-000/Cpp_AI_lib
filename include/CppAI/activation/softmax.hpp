@@ -42,7 +42,7 @@ public:
         }
 
         // exp(logit - max)
-        float sum;
+        float sum = 0.0f;
         Array<float> output(input.shape);
         for (uint32_t i=0; i<output.shape[0]; i++){
             (*output.data_ptr)[i] = std::exp((*input.data_ptr)[i * input.strides[0] + input.offset] - max_input);
