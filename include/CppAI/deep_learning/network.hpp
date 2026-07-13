@@ -23,6 +23,9 @@ public:
             std::vector< Array<float>* > layerParams = modules.back()->get_parameters();
             parameters.insert(parameters.end(), layerParams.begin(), layerParams.end());
         }
+        if (other.training){
+            train_mode();
+        }
     }
 
     Network& operator=(const Network& other){
@@ -32,6 +35,9 @@ public:
             modules.emplace_back(module->copy());
             std::vector< Array<float>* > layerParams = modules.back()->get_parameters();
             parameters.insert(parameters.end(), layerParams.begin(), layerParams.end());
+        }
+        if (other.training){
+            train_mode();
         }
         return (*this);
     }
