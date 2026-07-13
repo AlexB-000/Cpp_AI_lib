@@ -158,6 +158,13 @@ public:
         } \
     } \
     inline Array<return_type> op(const _T scalar) const { \
+        if (owner){ \
+            Array<return_type> result(shape); \
+            /* Array isn't a view so we optimize and just go through the data array */ \
+            for (uint32_t i=0; i<data_ptr->size(); ++i) \
+                (*result.data_ptr)[i] = (*data_ptr)[i] op_sign scalar; \
+            return result; \
+        } \
         return op(Array<return_type>(scalar)); \
     }
 
@@ -201,6 +208,12 @@ public:
         } \
     } \
     inline Array<_T>& op(const _T scalar){ \
+        if (owner){ \
+            /* Array isn't a view so we optimize and just go through the data array */ \
+            for (uint32_t i=0; i<data_ptr->size(); ++i) \
+                (*data_ptr)[i] op_sign scalar; \
+            return *this; \
+        } \
         return op(Array<_T>(scalar)); \
     }
 
