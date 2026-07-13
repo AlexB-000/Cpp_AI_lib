@@ -49,22 +49,14 @@ int main(){
     auto t1 = high_resolution_clock::now();
 
     Network net;
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 32, "he", SEED);
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, "glorot");
     net.stackLayer(layer1);
-    std::shared_ptr<ReLU> activation1 = std::make_shared<ReLU>(32);
+    std::shared_ptr<PReLU> activation1 = std::make_shared<PReLU>(5);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(32, 16, "he", SEED);
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 2, "glorot");
     net.stackLayer(layer2);
-    std::shared_ptr<ReLU> activation2 = std::make_shared<ReLU>(16);
+    std::shared_ptr<Softmax> activation2 = std::make_shared<Softmax>(2);
     net.stackLayer(activation2);
-    std::shared_ptr<Linear> layer3 = std::make_shared<Linear>(16, 8, "he", SEED);
-    net.stackLayer(layer3);
-    std::shared_ptr<ReLU> activation3 = std::make_shared<ReLU>(8);
-    net.stackLayer(activation3);
-    std::shared_ptr<Linear> layer4 = std::make_shared<Linear>(8, 2, "glorot", SEED);
-    net.stackLayer(layer4);
-    std::shared_ptr<Softmax> activation4 = std::make_shared<Softmax>(2);
-    net.stackLayer(activation4);
 
     std::cout << "## Network created.\n";
 
@@ -98,7 +90,7 @@ int main(){
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 10, 64, 1.0f, 2, false);
+    optimizer.train(X_train, y_train, 10, 64, 0.1f, 2, false);
 
     params = net.get_parameters();
     std::cout << "Learned Parameters:\n";
