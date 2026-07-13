@@ -2,6 +2,8 @@
 #include <random>
 #include "CppAI/Cpp_AI.hpp"
 
+#define SEED -1
+
 std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t seed=-1){
     std::vector<Array<float>> data;
     std::vector<Array<float>> target;
@@ -19,9 +21,9 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t 
         float value2 = dis(gen);
         data.emplace_back(std::vector<uint32_t>{2}, std::vector<float>{value1, value2});
         if (value1 && value2 || (!value1 && !value2))
-            target.emplace_back(std::vector<uint32_t>{1}, std::vector<float>{-1.0f});
+            target.emplace_back(std::vector<uint32_t>{2}, std::vector<float>{0.0f, 1.0f});
         else
-            target.emplace_back(std::vector<uint32_t>{1}, std::vector<float>{1.0f});
+            target.emplace_back(std::vector<uint32_t>{2}, std::vector<float>{1.0f, 0.0f});
     }
     return {data, target};
 }
@@ -34,38 +36,35 @@ void printDecisionGraph(Network& net){
         for (float x2 = 0.0f; x2 <= 1.0f; x2 += 0.2f){
             Array<float> input{{2}, {x1, x2}};
             Array<float> output = net.forward(input);
-            std::cout << output.at(0) << " ";
+            std::cout << output.at(0)-output.at(1) << " ";
         }
         std::cout << "\n";
     }
 }
 
-int main(int argc, char* argv[]){
-    bool loading = false;
-    if (argc == 2 && std::string(argv[1]) == "--load"){
-        loading = true;
-    }
-
+int main(){
     using std::chrono::high_resolution_clock;
     using std::chrono::duration;
     using std::chrono::milliseconds;
     auto t1 = high_resolution_clock::now();
 
     Network net;
-    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 5, "glorot");
+    std::shared_ptr<Linear> layer1 = std::make_shared<Linear>(2, 32, "he", SEED);
     net.stackLayer(layer1);
-    std::shared_ptr<Tanh> activation1 = std::make_shared<Tanh>(5);
+    std::shared_ptr<ReLU> activation1 = std::make_shared<ReLU>(32);
     net.stackLayer(activation1);
-    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(5, 5, "glorot");
+    std::shared_ptr<Linear> layer2 = std::make_shared<Linear>(32, 16, "he", SEED);
     net.stackLayer(layer2);
-    std::shared_ptr<Tanh> activation2 = std::make_shared<Tanh>(5);
+    std::shared_ptr<ReLU> activation2 = std::make_shared<ReLU>(16);
     net.stackLayer(activation2);
-    std::shared_ptr<Linear> layer3 = std::make_shared<Linear>(5, 1, "glorot");
+    std::shared_ptr<Linear> layer3 = std::make_shared<Linear>(16, 8, "he", SEED);
     net.stackLayer(layer3);
-    std::shared_ptr<Tanh> activation3 = std::make_shared<Tanh>(1);
+    std::shared_ptr<ReLU> activation3 = std::make_shared<ReLU>(8);
     net.stackLayer(activation3);
-
-    if (loading) net.load("xor_dataset_model.bin");
+    std::shared_ptr<Linear> layer4 = std::make_shared<Linear>(8, 2, "glorot", SEED);
+    net.stackLayer(layer4);
+    std::shared_ptr<Softmax> activation4 = std::make_shared<Softmax>(2);
+    net.stackLayer(activation4);
 
     std::cout << "## Network created.\n";
 
@@ -81,29 +80,25 @@ int main(int argc, char* argv[]){
         std::cout << "\n";
     }
 
-    printDecisionGraph(net);
 
-    std::vector<std::vector<Array<float>>> data = generate_data(1000);
+    std::vector<std::vector<Array<float>>> data = generate_data(10000, SEED);
     std::vector<Array<float>> X = data[0];
     std::vector<Array<float>> y = data[1];
 
-    std::vector<std::vector<Array<float>>> splited = train_test_split(X, y, 0.1f);
+    std::vector<std::vector<Array<float>>> splited = train_test_split(X, y, 0.1f, SEED);
     std::vector<Array<float>> X_train = splited[0];
     std::vector<Array<float>> y_train = splited[1];
     std::vector<Array<float>> X_test = splited[2];
     std::vector<Array<float>> y_test = splited[3];
 
-    ArrayDataset train_dataset (X_train, y_train);
-
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
-    MSELoss loss {1};
+    CrossEntropyLoss loss(2);
     GD optimizer(&net, &loss);
 
-    DataLoader train_dataloader (&train_dataset, 100);
-    optimizer.train(train_dataloader, 50, 1.0f, 2, true);
+    std::cout << "## Starting training...\n";
 
-    std::cout << "## Training completed.\n";
+    optimizer.train(X_train, y_train, 10, 64, 1.0f, 2, false);
 
     params = net.get_parameters();
     std::cout << "Learned Parameters:\n";
@@ -111,10 +106,10 @@ int main(int argc, char* argv[]){
         param->show();
     }
 
-    float train_accuracy = ClassMetrics::bin_accuracy(net, X_train, y_train, true, true);
+    float train_accuracy = ClassMetrics::multiclass_accuracy(net, X_train, y_train);
     std::cout << "## Train Accuracy: " << train_accuracy * 100.0f << "%\n";
 
-    float test_accuracy = ClassMetrics::bin_accuracy(net, X_test, y_test, true, true);
+    float test_accuracy = ClassMetrics::multiclass_accuracy(net, X_test, y_test);
     std::cout << "## Test Accuracy: " << test_accuracy * 100.0f << "%\n";
 
     printDecisionGraph(net);
@@ -125,8 +120,6 @@ int main(int argc, char* argv[]){
     duration<double, std::milli> exe_time = t2 - t1;
 
     std::cout << "Execution time: " << exe_time.count() << "ms\n";
-
-    net.save("xor_dataset_model.bin");
 
     return 0;
 }

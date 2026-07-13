@@ -18,7 +18,7 @@ public:
         }
         float loss = 0;
         for (uint32_t i=0; i<gradient.shape[0]; i++){
-            (*gradient.data_ptr)[i] = -(*target.data_ptr)[i*target.strides[0] + target.offset]
+            (*gradient.data_ptr)[i*gradient.strides[0] + gradient.offset] = -(*target.data_ptr)[i*target.strides[0] + target.offset]
                                       / ((*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] + _epsilon);
             loss -= (*target.data_ptr)[i*target.strides[0] + target.offset]
                     * std::log((*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] + _epsilon);

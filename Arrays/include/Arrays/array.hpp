@@ -58,12 +58,68 @@ public:
         }
     }
 
+    Array<_T>& operator=(const Array<_T>& other) {
+        if (owner && other.owner){
+            if (shape==other.shape){
+                // operands aren't views and have the same shape so we optimize and just go through the memory
+                for (uint32_t i=0; i<data_ptr->size(); ++i)
+                    (*data_ptr)[i] = (*other.data_ptr)[i];
+                return *this;
+            } else {
+                //MARK: copy
+                // make a copy
+                owner = true;
+                shape = other.shape;
+                dim = shape.size();
+                uint32_t size = 1;
+                for (int32_t i = dim-1; i >= 0; --i) {
+                    strides[i] = size;
+                    size *= shape[i];
+                }
+                data_ptr = std::make_shared<std::vector<_T>>(*other.data_ptr);
+                return *this;
+            }
+        }
+        std::vector<uint32_t> bshape, bstrides1, bstrides2;
+        broadcast(*this, other, bshape, bstrides1, bstrides2);
+        if (bshape != shape) {
+            throw std::invalid_argument("Dimension mismatch: cannot broadcast shape of the input to the array.");
+        }
+        if (bshape.size() == 0) {
+            (*data_ptr)[offset] = (*other.data_ptr)[other.offset];
+            return *this;
+        }
+        std::vector<uint32_t> idx(bshape.size(), 0);
+        while (true){
+            uint32_t flat_index1 = offset, flat_index2 = other.offset;
+            for (size_t i = 0; i < bshape.size(); ++i) {
+                flat_index1 += idx[i] * bstrides1[i];
+                flat_index2 += idx[i] * bstrides2[i];
+            }
+            (*data_ptr)[flat_index1] = (*other.data_ptr)[flat_index2];
+            /* Increment the multi-dimensional index */
+            for (int32_t i = bshape.size() - 1; i >= 0; --i) {
+                if (++idx[i] < bshape[i]) {
+                    break;
+                } \
+                idx[i] = 0;
+                if (i == 0) {
+                    return *this;
+                }
+            }
+        }
+    }
+    inline Array<_T>& operator=(const _T scalar){
+        return operator=(Array<_T>(scalar));
+    }
+
     Array<_T> copy() const {
         Array<_T> result (shape);
         result = *this;
         return result;
     }
 
+    //MARK: operations
     #define defineElementwiseOp(op, op_sign, return_type) \
     Array<return_type> op(const Array<_T>& other) const { \
         if (owner && other.owner && shape==other.shape){ \
@@ -116,6 +172,8 @@ public:
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
         broadcast(*this, other, bshape, bstrides1, bstrides2); \
         if (bshape != shape) { \
+            std::cout << dim << std::endl; \
+            std::cout << other.dim << std::endl; \
             throw std::invalid_argument("Dimension mismatch: cannot broadcast shape of the input to the array."); \
         } \
         if (bshape.size() == 0) { \
@@ -158,7 +216,6 @@ public:
     defineElementwiseOp(operator>, >, bool)
     defineElementwiseOp(operator>=, >=, bool)
 
-    defineElementwiseOpInPlace(operator=, =)
     defineElementwiseOpInPlace(operator+=, +=)
     defineElementwiseOpInPlace(operator-=, -=)
     defineElementwiseOpInPlace(operator*=, *=)

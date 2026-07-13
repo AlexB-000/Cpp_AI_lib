@@ -15,11 +15,11 @@ public:
             throw std::invalid_argument("In MSELoss : Input size does not match the expected size.");
         }
         float loss = 0;
-        for (uint32_t i = 0; i < gradient.shape[0]; ++i) {
+        for (uint32_t i = 0; i < size; ++i) {
             const float l = (*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] - (*target.data_ptr)[i*target.strides[0] + target.offset];
             loss += l*l;
             (*gradient.data_ptr)[i] = l * 2.0f / static_cast<float>(size);
-        }        
+        }
         return loss / static_cast<float>(size);
     }
 };

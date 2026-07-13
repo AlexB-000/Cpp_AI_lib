@@ -1,5 +1,5 @@
 #include "CppAI/deep_learning/network.hpp"
-
+#include <thread>
 void Network::stackLayer(const std::shared_ptr<Module> layer){
 	modules.emplace_back(layer);
 	std::vector< Array<float>* > layerParams = layer->get_parameters();
@@ -18,15 +18,16 @@ std::vector< Array<float> > Network::backward(const Array<float>& prevDeriv){
 
 	std::shared_ptr<Array<float>> deriv = std::make_shared<Array<float>>(prevDeriv);
 
-	std::vector< Array<float> > allDerivs;
+	std::vector< Array<float> > allGrads;
+	allGrads.reserve(modules.size());
 	for(int i = modules.size() - 1; i >= 0; i--){
-		std::vector< Array<float> > layerDerivs = modules[i]->backward(*deriv);
-		deriv = std::make_shared<Array<float>>(layerDerivs.back());
-		layerDerivs.pop_back();
-		allDerivs.insert(allDerivs.begin(), layerDerivs.begin(), layerDerivs.end());
+		std::vector< Array<float> > grad = modules[i]->backward(*deriv);
+		deriv = std::make_shared<Array<float>>(grad.back());
+		grad.pop_back();
+		allGrads.insert(allGrads.begin(), grad.begin(), grad.end());
 	}
-	allDerivs.emplace_back(*deriv);
-	return allDerivs;
+	allGrads.emplace_back(*deriv);
+	return allGrads;
 }
 
 void Network::save(const std::string& filename) const {

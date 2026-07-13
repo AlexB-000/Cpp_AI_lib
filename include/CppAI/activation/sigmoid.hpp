@@ -34,7 +34,7 @@ public:
             throw std::invalid_argument("In Sigmoid forward : Input size does not match the expected size.");
         }
 
-        Array<float> output = 1.0f / (1.0f + std::exp(-input.at(0)));
+        Array<float> output = 1.0f / (1.0f + std::exp( -(*input.data_ptr)[input.offset] ));
 
         if (training) outputCache = output;
 
@@ -52,6 +52,6 @@ public:
         if (prevDeriv.shape[0] != outputSize) {
             throw std::invalid_argument("In Softmax backward : Previous derivative size does not match the expected output size.");
         }
-        return {prevDeriv.at(0) * outputCache.at(0) * (1.0f - outputCache.at(0))}; // Sigmoid derivative
+        return {(*prevDeriv.data_ptr)[0] * (*outputCache.data_ptr)[0] * (1.0f - (*outputCache.data_ptr)[0])}; // Sigmoid derivative
     }
 };
