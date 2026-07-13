@@ -58,14 +58,77 @@ public:
         }
     }
 
+    Array<_T>& operator=(const Array<_T>& other) {
+        if (owner && other.owner){
+            if (shape==other.shape){
+                // operands aren't views and have the same shape so we optimize and just go through the memory
+                for (uint32_t i=0; i<data_ptr->size(); ++i)
+                    (*data_ptr)[i] = (*other.data_ptr)[i];
+                return *this;
+            } else {
+                //MARK: copy
+                // make a copy
+                owner = true;
+                shape = other.shape;
+                dim = shape.size();
+                uint32_t size = 1;
+                for (int32_t i = dim-1; i >= 0; --i) {
+                    strides[i] = size;
+                    size *= shape[i];
+                }
+                data_ptr = std::make_shared<std::vector<_T>>(*other.data_ptr);
+                return *this;
+            }
+        }
+        std::vector<uint32_t> bshape, bstrides1, bstrides2;
+        broadcast(*this, other, bshape, bstrides1, bstrides2);
+        if (bshape != shape) {
+            throw std::invalid_argument("Dimension mismatch: cannot broadcast shape of the input to the array.");
+        }
+        if (bshape.size() == 0) {
+            (*data_ptr)[offset] = (*other.data_ptr)[other.offset];
+            return *this;
+        }
+        std::vector<uint32_t> idx(bshape.size(), 0);
+        while (true){
+            uint32_t flat_index1 = offset, flat_index2 = other.offset;
+            for (size_t i = 0; i < bshape.size(); ++i) {
+                flat_index1 += idx[i] * bstrides1[i];
+                flat_index2 += idx[i] * bstrides2[i];
+            }
+            (*data_ptr)[flat_index1] = (*other.data_ptr)[flat_index2];
+            /* Increment the multi-dimensional index */
+            for (int32_t i = bshape.size() - 1; i >= 0; --i) {
+                if (++idx[i] < bshape[i]) {
+                    break;
+                } \
+                idx[i] = 0;
+                if (i == 0) {
+                    return *this;
+                }
+            }
+        }
+    }
+    inline Array<_T>& operator=(const _T scalar){
+        return operator=(Array<_T>(scalar));
+    }
+
     Array<_T> copy() const {
         Array<_T> result (shape);
         result = *this;
         return result;
     }
 
+    //MARK: operations
     #define defineElementwiseOp(op, op_sign, return_type) \
     Array<return_type> op(const Array<_T>& other) const { \
+        if (owner && other.owner && shape==other.shape){ \
+            Array<return_type> result(shape); \
+            /* operands aren't views and have the same shape so we optimize and just go through the memory */ \
+            for (uint32_t i=0; i<data_ptr->size(); ++i) \
+                (*result.data_ptr)[i] = (*data_ptr)[i] op_sign (*other.data_ptr)[i]; \
+            return result; \
+        } \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
         broadcast(*this, other, bshape, bstrides1, bstrides2); \
         Array<return_type> result(bshape); \
@@ -100,9 +163,17 @@ public:
 
     #define defineElementwiseOpInPlace(op, op_sign) \
     Array<_T>& op(const Array<_T>& other) { \
+        if (owner && other.owner && shape==other.shape){ \
+            /* operands aren't views and have the same shape so we optimize and just go through the memory */ \
+            for (uint32_t i=0; i<data_ptr->size(); ++i) \
+                (*data_ptr)[i] op_sign (*other.data_ptr)[i]; \
+            return *this; \
+        } \
         std::vector<uint32_t> bshape, bstrides1, bstrides2; \
         broadcast(*this, other, bshape, bstrides1, bstrides2); \
         if (bshape != shape) { \
+            std::cout << dim << std::endl; \
+            std::cout << other.dim << std::endl; \
             throw std::invalid_argument("Dimension mismatch: cannot broadcast shape of the input to the array."); \
         } \
         if (bshape.size() == 0) { \
@@ -132,7 +203,7 @@ public:
     inline Array<_T>& op(const _T scalar){ \
         return op(Array<_T>(scalar)); \
     }
-    
+
     defineElementwiseOp(operator+, +, _T)
     defineElementwiseOp(operator-, -, _T)
     defineElementwiseOp(operator*, *, _T)
@@ -145,7 +216,6 @@ public:
     defineElementwiseOp(operator>, >, bool)
     defineElementwiseOp(operator>=, >=, bool)
 
-    defineElementwiseOpInPlace(operator=, =)
     defineElementwiseOpInPlace(operator+=, +=)
     defineElementwiseOpInPlace(operator-=, -=)
     defineElementwiseOpInPlace(operator*=, *=)
@@ -207,17 +277,14 @@ public:
         if (indices.size() > shape.size()) {
             throw std::invalid_argument("Number of indices must not exceed the number of dimensions.");
         }
+        std::vector<uint32_t> new_shape(shape.begin()+indices.size(), shape.end());
+        std::vector<uint32_t> new_strides(strides.begin()+indices.size(), strides.end());
         uint32_t new_offset = offset;
-        std::vector<uint32_t> new_shape, new_strides;
         for (size_t i = 0; i < indices.size(); ++i) {
             if (indices[i] >= shape[i]) {
                 throw std::out_of_range("Index " + std::to_string(indices[i]) + " out of bounds for dimension " + std::to_string(i) + " with size " + std::to_string(shape[i]));
             }
             new_offset += indices[i] * strides[i];
-        }
-        for (size_t i = indices.size(); i < shape.size(); ++i) {
-            new_shape.push_back(shape[i]);
-            new_strides.push_back(strides[i]);
         }
         return Array<_T>(new_shape.size(), new_offset, false, new_shape, new_strides, data_ptr);
     }

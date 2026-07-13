@@ -17,3 +17,8 @@ add_executable(example_dataset_XOR)
 target_sources(example_dataset_XOR PRIVATE example_dataset_XOR.cpp)
 target_link_libraries(example_dataset_XOR PRIVATE CppAI)
 target_compile_features(example_dataset_XOR PRIVATE cxx_std_17)
+
+add_executable(example_softmax)
+target_sources(example_softmax PRIVATE example_softmax.cpp)
+target_link_libraries(example_softmax PRIVATE CppAI)
+target_compile_features(example_softmax PRIVATE cxx_std_17)

@@ -25,31 +25,6 @@ void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
     }
 }
 
-std::vector<Array<float>> GD::backpropagation(Network* _model, const Array<float>& LossDeriv) {
-    std::shared_ptr<Array<float>> deriv = std::make_shared<Array<float>>(LossDeriv);
-    std::vector<Array<float>> all_grads;
-
-    for (int layer_idx = _model->modules.size()-1; layer_idx >= 0; layer_idx--) {
-        std::shared_ptr<Module> layer = _model->modules[layer_idx];
-
-        // std::cout << "Backpropagating through layer : " << layer << " index: " << layer_idx << "\n";
-
-        std::vector<Array<float>> grad = layer->backward(*deriv);
-
-        // std::cout << "Layer backward gradients:\n";
-        // for (size_t i = 0; i < grad.size(); ++i) {
-        //     grad[i].show();
-        // }
-        
-        // Skip modules that do not have gradients (no parameters)
-        if (grad.size() > 1) {
-            all_grads.insert(all_grads.begin(), grad.begin(), grad.end()-1);
-        }
-        deriv = std::make_shared<Array<float>>(grad.back());
-    }
-    return all_grads;
-}
-
 void GD::train_oneSample(Network* _model, const Array<float>* input, const Array<float>* target, std::vector<Array<float>>* gradient, float* loss_value) {
     Array<float> output = _model->forward(*input);
     
@@ -57,7 +32,7 @@ void GD::train_oneSample(Network* _model, const Array<float>* input, const Array
 
     Array<float> lossGrad = loss->get_gradient();
 
-    std::vector<Array<float>> grad = backpropagation(_model, lossGrad);
+    std::vector<Array<float>> grad = _model->backward(lossGrad);
 
     if (gradient->size() != 0) {
         for (size_t p = 0; p < grad.size(); ++p) {
@@ -67,6 +42,57 @@ void GD::train_oneSample(Network* _model, const Array<float>* input, const Array
         *gradient = grad;
     }
 }
+
+void GD::train_oneThread(Network _model, const std::vector<Array<float>>* inputs, const std::vector<Array<float>>* targets,
+    std::vector<Array<float>>* gradient, float* loss_value, float grad_coeff,
+    const unsigned int thread_idx, const unsigned int data_start_index, const unsigned int sample_count){
+    
+    std::vector<Array<float>> grad;
+    float _inthread_loss_value = 0.0f;
+    for (unsigned int i = 0; i < sample_count; ++i) {
+        train_oneSample(&_model, &(*inputs)[data_start_index + i],
+                        &(*targets)[data_start_index + i],
+                        &grad, &_inthread_loss_value);
+    }
+    train_thread_mutex.lock();
+    if (gradient->size() != 0) {
+        for (size_t p = 0; p < grad.size(); ++p) {
+            (*gradient)[p] += grad[p] * grad_coeff;
+        }
+    } else {
+        *gradient = grad;
+        for (size_t p = 0; p < grad.size(); ++p) {
+            (*gradient)[p] *= grad_coeff;
+        }
+    }
+    *loss_value += _inthread_loss_value;
+    train_thread_mutex.unlock();
+}
+
+void GD::train_oneThread_batch(Network _model, const std::vector<std::vector<Array<float>>>* batch,
+    std::vector<Array<float>>* gradient, float* loss_value, float grad_coeff,
+    const unsigned int thread_idx, const unsigned int start_index, const unsigned int sample_count){
+    
+    std::vector<Array<float>> grad;
+    float _inthread_loss_value = 0.0f;
+    for (unsigned int i = 0; i < sample_count; ++i) {
+        train_oneSample(&_model, &(*batch)[start_index + i][0], &(*batch)[start_index + i][1], &grad, &_inthread_loss_value);
+    }
+    train_thread_mutex.lock();
+    if (gradient->size() != 0) {
+        for (size_t p = 0; p < grad.size(); ++p) {
+            (*gradient)[p] += grad[p] * grad_coeff;
+        }
+    } else {
+        *gradient = grad;
+        for (size_t p = 0; p < grad.size(); ++p) {
+            (*gradient)[p] *= grad_coeff;
+        }
+    }
+    *loss_value += _inthread_loss_value;
+    train_thread_mutex.unlock();
+}
+
 //MARK: train X, y
 void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
