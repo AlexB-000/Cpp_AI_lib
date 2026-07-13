@@ -25,6 +25,8 @@ public:
         }
         if (other.training){
             train_mode();
+        } else {
+            eval_mode();
         }
     }
 
@@ -38,6 +40,8 @@ public:
         }
         if (other.training){
             train_mode();
+        } else {
+            eval_mode();
         }
         return (*this);
     }
