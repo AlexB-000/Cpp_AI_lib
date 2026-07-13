@@ -27,8 +27,9 @@ std::vector<Array<float>> Linear::backward(const Array<float>& prevDeriv){
     Array<float> d_weights {std::vector<unsigned int>{outputSize, inputSize}, 0};
     for (unsigned int i=0; i<static_cast<unsigned int>(outputSize); i++){
         for (unsigned int j=0; j<static_cast<unsigned int>(inputSize); j++){
-            (*d_weights.data_ptr)[i*d_weights.strides[1] + j] =
-                (*prevDeriv.data_ptr)[i*prevDeriv.strides[0] + prevDeriv.offset] * (*prevInput.data_ptr)[j];
+            (*d_weights.data_ptr)[i*d_weights.strides[0] + j] =
+                (*prevDeriv.data_ptr)[i*prevDeriv.strides[0] + prevDeriv.offset]
+                * (*prevInput.data_ptr)[j];
         }
     }
     return {d_weights, d_biases, deriv};

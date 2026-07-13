@@ -15,21 +15,21 @@ class Linear: public Module{
 
         for (unsigned int i = 0; i < outputSize; ++i) {
             for (unsigned int j = 0; j < inputSize; ++j) {
-                weights[{i, j}] = weight_dist(gen);
+                (*weights.data_ptr)[i*weights.strides[1] + j] = weight_dist(gen);
             }
         }
 
         // Initialize biases
         if (biasStdDev == 0.0f) {
             for (unsigned int i = 0; i < outputSize; ++i) {
-                biases[i] = biasMean;
+                (*biases.data_ptr)[i] = biasMean;
             }
             return;
         }
         std::normal_distribution<float> bias_dist(biasMean, biasStdDev);
 
         for (unsigned int i = 0; i < outputSize; ++i) {
-            biases[i] = bias_dist(gen);
+            (*biases.data_ptr)[i] = bias_dist(gen);
         }
     }
 public:

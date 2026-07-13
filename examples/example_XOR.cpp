@@ -87,6 +87,7 @@ int main(){
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
     BCEWithLogitsLoss loss;
+    //BCELoss loss;
     GD optimizer(&net, &loss);
 
     std::cout << "## Starting training...\n";

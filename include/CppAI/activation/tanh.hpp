@@ -47,10 +47,7 @@ public:
         Array<float> deriv(prevDeriv.shape);
         for (uint32_t i=0; i<deriv.shape[0]; i++){
             (*deriv.data_ptr)[i] = (*prevDeriv.data_ptr)[i * prevDeriv.strides[0] + prevDeriv.offset] *
-                (1.0f - 
-                    (*outputCache.data_ptr)[i * outputCache.strides[0]] *
-                    (*outputCache.data_ptr)[i * outputCache.strides[0]]
-            );
+                (1.0f - (*outputCache.data_ptr)[i] * (*outputCache.data_ptr)[i]);
         }
         return {deriv};
     }

@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
     GD optimizer(&net, &loss);
 
     DataLoader train_dataloader (&train_dataset, 100);
-    optimizer.train(train_dataloader, 50, 0.1f, 0, true);
+    optimizer.train(train_dataloader, 50, 1.0f, 0, true);
 
     std::cout << "## Training completed.\n";
 
