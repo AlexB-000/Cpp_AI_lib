@@ -2,19 +2,19 @@
 #include <cmath>
 #include "./Loss.hpp"
 
-class CrossEntropyLossWithLogits: public Loss{
+class CrossEntropyWithLogitsLoss: public Loss{
     float _epsilon = 1e-9f; // small value to prevent log(0)
 public:
-    ~CrossEntropyLossWithLogits() = default;
+    ~CrossEntropyWithLogitsLoss() = default;
 
-    CrossEntropyLossWithLogits(int size, float epsilon=1e-9f) : Loss(size), _epsilon(epsilon) {}
+    CrossEntropyWithLogitsLoss(int size, float epsilon=1e-9f) : Loss(size), _epsilon(epsilon) {}
 
 	float compute(const Array<float>& predicted, const Array<float>& target) override {
         if (predicted.shape != target.shape) {
-            throw std::invalid_argument("In CrossEntropyLossWithLogits : Predicted and target arrays must have the same shape.");
+            throw std::invalid_argument("In CrossEntropyWithLogitsLoss : Predicted and target arrays must have the same shape.");
         }
         if (predicted.shape[0] != size) {
-            throw std::invalid_argument("In CrossEntropyLossWithLogits : Input size does not match the expected size.");
+            throw std::invalid_argument("In CrossEntropyWithLogitsLoss : Input size does not match the expected size.");
         }
         float loss = 0;
         for (uint32_t i=0; i<gradient.shape[0]; i++){
