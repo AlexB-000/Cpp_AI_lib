@@ -86,6 +86,11 @@ public:
                     (*prevDeriv.data_ptr)[i * prevDeriv.strides[0] + prevDeriv.offset];
             }
         }
+        for (uint32_t i=0; i<deriv.shape[0]; i++){
+            if (std::isnan((*deriv.data_ptr)[i]) || std::isinf((*deriv.data_ptr)[i])) {
+                throw std::runtime_error("In Softmax backward : Derivative computation resulted in NaN or Inf. Check output values for numerical stability.");
+            }
+        }
         return {deriv};
     }
 };

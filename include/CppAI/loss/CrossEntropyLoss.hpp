@@ -20,6 +20,9 @@ public:
         for (uint32_t i=0; i<gradient.shape[0]; i++){
             (*gradient.data_ptr)[i*gradient.strides[0] + gradient.offset] = -(*target.data_ptr)[i*target.strides[0] + target.offset]
                                       / ((*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] + _epsilon);
+            if (std::isnan((*gradient.data_ptr)[i*gradient.strides[0] + gradient.offset]) || std::isinf((*gradient.data_ptr)[i*gradient.strides[0] + gradient.offset])) {
+                throw std::runtime_error("In CrossEntropyLoss : Gradient computation resulted in NaN or Inf. Check predicted values for numerical stability.");
+            }
             loss -= (*target.data_ptr)[i*target.strides[0] + target.offset]
                     * std::log((*predicted.data_ptr)[i*predicted.strides[0] + predicted.offset] + _epsilon);
         }
