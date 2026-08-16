@@ -1,9 +1,7 @@
 #include "CppAI/optimizers/GD.hpp"
 
 void GD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
-    if (param){
-        (*param) -= (*grad) * lr;
-    }
+    (*param) -= (*grad) * lr;
 }
 
 void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
