@@ -15,13 +15,24 @@ Array<float> Network::forward(const Array<float>& input){
 }
 
 std::vector< Array<float> > Network::backward(const Array<float>& prevDeriv){
-
+	for (uint32_t j=0; j < prevDeriv.shape[0]; ++j) {
+		if (std::abs((*prevDeriv.data_ptr)[j*prevDeriv.strides[0] + prevDeriv.offset]) > 10) {
+			std::cout << "Warning: Large gradient detected in input at index " << j << " : " << (*prevDeriv.data_ptr)[j*prevDeriv.strides[0] + prevDeriv.offset] << std::endl;
+		}
+	}
 	std::shared_ptr<Array<float>> deriv = std::make_shared<Array<float>>(prevDeriv);
 
 	std::vector< Array<float> > allGrads;
 	allGrads.reserve(modules.size());
 	for(int i = modules.size() - 1; i >= 0; i--){
 		std::vector< Array<float> > grad = modules[i]->backward(*deriv);
+		for (uint32_t m=0; m < grad.size(); ++m) {
+			for (uint32_t j=0; j < grad[m].shape[0]; ++j) {
+				if (std::abs((*grad[m].data_ptr)[j*grad[m].strides[0] + grad[m].offset]) > 10) {
+					std::cout << "Warning: Large gradient detected layer " << i << " module " << m << " at index " << j << " : " << (*grad[m].data_ptr)[j*grad[m].strides[0] + grad[m].offset] << std::endl;
+				}
+			}
+		}
 		deriv = std::make_shared<Array<float>>(grad.back());
 		grad.pop_back();
 		allGrads.insert(allGrads.begin(), grad.begin(), grad.end());
