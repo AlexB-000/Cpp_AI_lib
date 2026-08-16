@@ -21,7 +21,7 @@
 #include "loss/BCE_Loss.hpp"
 #include "loss/BCEWithLogitsLoss.hpp"
 #include "loss/CrossEntropyLoss.hpp"
-#include "loss/CESoftmaxLoss.hpp"
+#include "loss/CrossEntropyLossWithLogits.hpp"
 
 #include "DataLoader.hpp"
 #include "Dataset.hpp"
