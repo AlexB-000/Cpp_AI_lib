@@ -2,6 +2,11 @@
 
 void GD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
     if (param){
+        for (size_t i = 0; i < param->shape[0]; ++i) {
+            if (std::isnan((*grad->data_ptr)[grad->offset + i * grad->strides[0]]) || std::isinf((*grad->data_ptr)[grad->offset + i * grad->strides[0]])) {
+                throw std::runtime_error("Gradient contains NaN or Inf values.");
+            }
+        }
         (*param) -= (*grad) * lr;
     }
 }
