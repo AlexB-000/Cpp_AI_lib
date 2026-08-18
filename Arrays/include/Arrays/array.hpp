@@ -39,7 +39,7 @@ public:
     Array(const _T& value): shape({}), strides({}), dim(0), offset(0), owner(true),
         data_ptr(std::make_shared<std::vector<_T>>(std::vector<_T>{value})) {}
 
-    Array(const std::vector<uint32_t>& inShape, const _T& value=_T()) : shape(inShape), strides(dim),
+    Array(const std::vector<uint32_t>& inShape, const _T& value=_T()) : shape(inShape), strides(inShape.size()),
         dim(inShape.size()), offset(0), owner(true) {
         uint32_t size = 1;
         for (int32_t i = dim-1; i >= 0; --i) {
