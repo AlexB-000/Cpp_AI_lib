@@ -207,7 +207,7 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
                 unsigned int count = std::min(samples_per_thread, batch_size - start_index);
                 
                 threads.push_back(std::thread(&GD::train_oneThread_batch, this, *model,
-                    &batch, &batch_gradient, &epoch_loss, grad_coeff,
+                    &batch, &batch_gradient, &batch_loss, grad_coeff,
                     t, start_index, count));
             }
             for (auto& t : threads) {
@@ -218,7 +218,7 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
             
             if (display_mode >= 2 && i % batch_info_interval == 0) {
                 std::cout << "\tbatch completed " << i + 1 << "/" << data_loader.get_batch_quantity()
-                    << "\tLoss: " << batch_loss << "\n";
+                    << "\tLoss: " << batch_loss / batch_size << "\n";
             }
             epoch_loss += batch_loss;
         }
