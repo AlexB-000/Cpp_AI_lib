@@ -34,8 +34,8 @@ public:
         
         Array<float> output {input.copy()};
         for (uint32_t i=0; i < output.shape[0]; i++){
-            if (output.at(i) < 0){
-                output.at(i) *= alpha.at(0);
+            if ((*output.data_ptr)[i] < 0){
+                (*output.data_ptr)[i] *= (*alpha.data_ptr)[0];
             }
         }
         return output;
@@ -51,15 +51,15 @@ public:
 
         Array<float> deriv {prevDeriv.copy()};
         for (uint32_t i=0; i < deriv.shape[0]; i++){
-            if (inputCache.at(i) <= 0){
-                deriv.at(i) *= alpha.at(0);
+            if ((*inputCache.data_ptr)[i] <= 0){
+                (*deriv.data_ptr)[i] *= (*alpha.data_ptr)[0];
             }
         }
 
         Array<float> d_alpha{{1}, 0.0f};
         for (uint32_t i=0; i < deriv.shape[0]; i++){
-            if (inputCache.at(i) <= 0){
-                d_alpha.at(0) += prevDeriv.at(i) * inputCache.at(i);
+            if ((*inputCache.data_ptr)[i] <= 0){
+                (*d_alpha.data_ptr)[0] += prevDeriv.at(i) * (*inputCache.data_ptr)[i];
             }
         }
         return {d_alpha, deriv};
