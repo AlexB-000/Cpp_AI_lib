@@ -15,7 +15,7 @@ class Linear: public Module{
 
         for (unsigned int i = 0; i < outputSize; ++i) {
             for (unsigned int j = 0; j < inputSize; ++j) {
-                (*weights.data_ptr)[i*weights.strides[1] + j] = weight_dist(gen);
+                (*weights.data_ptr)[i*weights.strides[0] + j] = weight_dist(gen);
             }
         }
 
