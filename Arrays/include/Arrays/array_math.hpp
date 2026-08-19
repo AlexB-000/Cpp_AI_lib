@@ -59,6 +59,13 @@ void broadcast(const Array<T>& array1, const Array<T>& array2,
 #define defineElementwiseOp(op, op_sign) \
 template<typename T> \
 Array<T> op(const Array<T>& t1, const Array<T>& t2) { \
+    if (t1.shape==t2.shape){ \
+        Array<T> result(t1.shape); \
+        /* operands have the same shape so we optimize and just go through the memory */ \
+        for (uint32_t i=0; i<t1.data.size(); ++i) \
+            result.data[i] = t1.data[i] op_sign t2.data[i]; \
+        return result; \
+    } \
     std::vector<uint32_t> bshape, bstrides1, bstrides2; \
     broadcast(t1, t2, bshape, bstrides1, bstrides2); \
     Array<T> result(bshape); \
@@ -95,6 +102,12 @@ inline Array<T> op(const Array<T>& t, const T scalar){ \
 #define defineElementwiseOpInPlace(op, op_sign) \
 template<typename T> \
 Array<T>& op(Array<T>& t1, const Array<T>& t2) { \
+    if (t1.shape==t2.shape){ \
+        /* operands have the same shape so we optimize and just go through the memory */ \
+        for (uint32_t i=0; i<t1.data.size(); ++i) \
+            t1.data[i] op_sign t2.data[i]; \
+        return t1; \
+    } \
     std::vector<uint32_t> bshape, bstrides1, bstrides2; \
     broadcast(t1, t2, bshape, bstrides1, bstrides2); \
     if (bshape != t1.shape) { \
