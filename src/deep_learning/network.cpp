@@ -69,7 +69,7 @@ void Network::load(const std::string& filename) {
 		for (unsigned int i = 0; i < size; i++) {
 			float value;
 			inFile.read(reinterpret_cast<char*>(&value), sizeof(value));
-			param->data_ptr->at(i) = value;
+			(*param->data_ptr)[param->offset + i] = value;
 		}
 	}
 }
