@@ -22,3 +22,8 @@ add_executable(example_softmax)
 target_sources(example_softmax PRIVATE example_softmax.cpp)
 target_link_libraries(example_softmax PRIVATE CppAI)
 target_compile_features(example_softmax PRIVATE cxx_std_17)
+
+add_executable(example_conv2d)
+target_sources(example_conv2d PRIVATE example_conv2d.cpp)
+target_link_libraries(example_conv2d PRIVATE CppAI)
+target_compile_features(example_conv2d PRIVATE cxx_std_17)

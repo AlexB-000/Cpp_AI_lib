@@ -17,6 +17,8 @@ target_sources(CppAI
 PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src/deep_learning/linear.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/deep_learning/network.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/deep_learning/conv2d.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/deep_learning/pooling.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/optimizers/GD.cpp
 )
 target_include_directories(CppAI
@@ -36,7 +38,7 @@ if(PROJECT_IS_TOP_LEVEL)
         message(STATUS "IPO enabled")
         set_property(TARGET CppAI PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
         if(BUILD_EXAMPLES)
-                set_property(TARGET example_affine example_XOR example_dataset_XOR PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+                set_property(TARGET example_affine example_XOR example_dataset_XOR example_softmax example_conv2d PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
         endif()
     else()
         message(STATUS "IPO not supported")

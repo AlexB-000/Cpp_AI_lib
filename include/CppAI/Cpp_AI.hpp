@@ -7,6 +7,9 @@
 
 #include "deep_learning/network.hpp"
 #include "deep_learning/linear.hpp"
+#include "deep_learning/conv2d.hpp"
+#include "deep_learning/pooling.hpp"
+#include "deep_learning/flatten.hpp"
 
 #include "activation/ReLU.hpp"
 #include "activation/LeakyReLU.hpp"
