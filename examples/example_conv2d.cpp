@@ -18,29 +18,30 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t 
 
     Network target_net;
     std::shared_ptr<Conv2d> layer1 = std::make_shared<Conv2d>(
-        std::vector<unsigned int>{10, 10, 1}, // input shape (height, width, channels)
+        std::vector<unsigned int>{20, 20, 1}, // input shape (height, width, channels)
         Padding::Replication, // padding type
-        2, // number of filters
+        1, // number of filters
         std::vector<unsigned int>{3, 3, 1}, // filter size (height, width, channels)
-        std::vector<unsigned int>{1, 1}, // stride (height, width)
+        std::vector<unsigned int>{2, 2}, // stride (height, width)
         "he", SEED // initialization method and seed
     );
     target_net.stackLayer(layer1);
-    std::shared_ptr<LeakyReLU> activation1 = std::make_shared<LeakyReLU>(std::vector<uint32_t>{10, 10, 2}, 0.01f);
+    std::shared_ptr<LeakyReLU> activation1 = std::make_shared<LeakyReLU>(std::vector<uint32_t>{10, 10, 1}, 0.01f);
     target_net.stackLayer(activation1);
-    std::shared_ptr<Flatten> flatten1 = std::make_shared<Flatten>(std::vector<uint32_t>{10, 10, 2});
+    std::shared_ptr<Pool2dLayer> pooling1 = std::make_shared<Pool2dLayer>(
+        Pooling::Max,
+        std::vector<unsigned int>{10, 10, 1},
+        std::vector<unsigned int>{2, 2},
+        std::vector<unsigned int>{2, 2}
+    );
+    target_net.stackLayer(pooling1);
+    std::shared_ptr<Flatten> flatten1 = std::make_shared<Flatten>(std::vector<uint32_t>{5, 5, 1});
     target_net.stackLayer(flatten1);
 
     *target_net.parameters[0] = Array<float>(std::vector<uint32_t>{3, 3, 1}, std::vector<float>{
         -1.0f, -1.0f, -1.0f,
         -1.0f, 8.0f, -1.0f,
         -1.0f, -1.0f, -1.0f
-    });
-    float oneNinth = 1.0f / 9.0f;
-    *target_net.parameters[1] = Array<float>(std::vector<uint32_t>{3, 3, 1}, std::vector<float>{
-        oneNinth, oneNinth, oneNinth,
-        oneNinth, oneNinth, oneNinth,
-        oneNinth, oneNinth, oneNinth
     });
     target_net.eval_mode();
 
@@ -53,7 +54,7 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t 
     for (unsigned int i=0; i<size; i++){
         uint32_t x = dis(gen);
         uint32_t y = dis(gen);
-        Array<float> input({10, 10, 1}, 0.0f);
+        Array<float> input({20, 20, 1}, 0.0f);
         for (uint32_t j=0; j<x; j++){
             for (uint32_t k=0; k<y; k++){
                 (*input.data_ptr)[j * input.strides[0] + k * input.strides[1]] = 1.0f;
@@ -74,17 +75,24 @@ int main(){
 
     Network net;
     std::shared_ptr<Conv2d> layer1 = std::make_shared<Conv2d>(
-        std::vector<unsigned int>{10, 10, 1}, // input shape (height, width, channels)
+        std::vector<unsigned int>{20, 20, 1}, // input shape (height, width, channels)
         Padding::Replication, // padding type
-        2, // number of filters
+        1, // number of filters
         std::vector<unsigned int>{3, 3, 1}, // filter size (height, width)
-        std::vector<unsigned int>{1, 1}, // stride (height, width)
+        std::vector<unsigned int>{2, 2}, // stride (height, width)
         "he", SEED // initialization method and seed
     );
     net.stackLayer(layer1);
-    std::shared_ptr<LeakyReLU> activation1 = std::make_shared<LeakyReLU>(std::vector<uint32_t>{10, 10, 2}, 0.01f);
+    std::shared_ptr<LeakyReLU> activation1 = std::make_shared<LeakyReLU>(std::vector<uint32_t>{10, 10, 1}, 0.01f);
     net.stackLayer(activation1);
-    std::shared_ptr<Flatten> flatten1 = std::make_shared<Flatten>(std::vector<uint32_t>{10, 10, 2});
+    std::shared_ptr<Pool2dLayer> pooling1 = std::make_shared<Pool2dLayer>(
+        Pooling::Max,
+        std::vector<unsigned int>{10, 10, 1},
+        std::vector<unsigned int>{2, 2},
+        std::vector<unsigned int>{2, 2}
+    );
+    net.stackLayer(pooling1);
+    std::shared_ptr<Flatten> flatten1 = std::make_shared<Flatten>(std::vector<uint32_t>{5, 5, 1});
     net.stackLayer(flatten1);
 
     std::cout << "## Network created.\n";
@@ -102,7 +110,7 @@ int main(){
     }
 
 
-    std::vector<std::vector<Array<float>>> data = generate_data(10000, SEED);
+    std::vector<std::vector<Array<float>>> data = generate_data(100000, SEED);    
     std::vector<Array<float>> X = data[0];
     std::vector<Array<float>> y = data[1];
 
@@ -114,12 +122,12 @@ int main(){
 
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
-    MSELoss loss{10*10*2};
+    MSELoss loss{5*5};
     GD optimizer(&net, &loss);
 
     std::cout << "## Starting training...\n";
 
-    optimizer.train(X_train, y_train, 5, 64, 1.0f, 0, false);
+    optimizer.train(X_train, y_train, 10, 64, 0.01f, 2, false);
 
     params = net.get_parameters();
     std::cout << "Learned Parameters:\n";

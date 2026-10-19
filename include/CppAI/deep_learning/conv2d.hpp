@@ -35,7 +35,7 @@ class Conv2d: public Module{
                         (*filters[f].data_ptr)[flatIdx] = weight_dist(gen);
                         // Increment indices
                         for (uint32_t k=filterSize.size()-3; k >=0 ; --k) {
-                            if (++indices[k] < inputShape[2+k]) {
+                            if (++indices[k] < filterSize[2+k]) {
                                 break;
                             }
                             indices[k] = 0;

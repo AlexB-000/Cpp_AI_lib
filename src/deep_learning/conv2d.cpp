@@ -5,7 +5,7 @@ Array<float> Conv2d::forward(const Array<float>& input){
         throw std::invalid_argument("In Conv2d forward : Input shape does not match the expected shape.");
     }
     if(training) inputCache = input;
-    Array<float> output(outputShape);
+    Array<float> output(outputShape, 0.0f);
     for (int32_t i=0; i<outputShape[0]; ++i){
         int32_t current_i = i*stride[0];
         for (int32_t j=0; j<outputShape[1]; ++j){
@@ -26,7 +26,7 @@ Array<float> Conv2d::forward(const Array<float>& input){
                     else if (padding == Padding::Zero) continue;
                 }
                 for (int32_t n=0; n < filterSize[1]; ++n){
-                    int32_t input_j = current_j + m - filterSize[1] / 2;
+                    int32_t input_j = current_j + n - filterSize[1] / 2;
                     if (input_j < 0) {
                         if (padding == Padding::Replication) input_j = 0;
                         else if (padding == Padding::Reflection) input_j = -input_j;
@@ -56,7 +56,7 @@ Array<float> Conv2d::forward(const Array<float>& input){
                         }
                         // Increment indices
                         for (uint32_t k=filterSize.size()-3; k >=0 ; --k) {
-                            if (++indices[k] < inputShape[2+k]) {
+                            if (++indices[k] < filterSize[2+k]) {
                                 break;
                             }
                             indices[k] = 0;
@@ -77,8 +77,8 @@ std::vector<Array<float>> Conv2d::backward(const Array<float>& prevDeriv){
     if (prevDeriv.shape != outputShape) {
         throw std::invalid_argument("In Conv2d backward : Previous derivative shape does not match the expected shape.");
     }
-    std::vector<Array<float>> d_filters(features, Array<float>(filterSize));
-    Array<float> deriv(inputShape);
+    std::vector<Array<float>> d_filters(features, Array<float>(filterSize, 0.0f));
+    Array<float> deriv(inputShape, 0.0f);
     for (int32_t i=0; i<outputShape[0]; ++i){
         int32_t current_i = i*stride[0];
         for (int32_t j=0; j<outputShape[1]; ++j){
@@ -99,7 +99,7 @@ std::vector<Array<float>> Conv2d::backward(const Array<float>& prevDeriv){
                     else if (padding == Padding::Zero) continue;
                 }
                 for (int32_t n=0; n < filterSize[1]; ++n){
-                    int32_t input_j = current_j + m - filterSize[1] / 2;
+                    int32_t input_j = current_j + n - filterSize[1] / 2;
                     if (input_j < 0) {
                         if (padding == Padding::Replication) input_j = 0;
                         else if (padding == Padding::Reflection) input_j = -input_j;
@@ -129,7 +129,7 @@ std::vector<Array<float>> Conv2d::backward(const Array<float>& prevDeriv){
                         }
                         // Increment indices
                         for (uint32_t k=filterSize.size()-3; k >=0 ; --k) {
-                            if (++indices[k] < inputShape[2+k]) {
+                            if (++indices[k] < filterSize[2+k]) {
                                 break;
                             }
                             indices[k] = 0;

@@ -7,8 +7,8 @@ Array<float> Pool2dLayer::forward(const Array<float>& input){
     Array<float> output(outputShape);
     for (uint32_t i=0; i<outputShape[0]; ++i){
         for (uint32_t j=0; j<outputShape[1]; ++j){
-            unsigned int input_i = i * stride;
-            unsigned int input_j = j * stride;
+            unsigned int input_i = i * stride[0];
+            unsigned int input_j = j * stride[1];
 
             // Pooling for this region
 
@@ -76,8 +76,8 @@ std::vector<Array<float>> Pool2dLayer::backward(const Array<float>& prevDeriv){
     Array<float> deriv(inputShape);
     for (uint32_t i=0; i<outputShape[0]; ++i){
         for (uint32_t j=0; j<outputShape[1]; ++j){
-            unsigned int input_i = i * stride;
-            unsigned int input_j = j * stride;
+            unsigned int input_i = i * stride[0];
+            unsigned int input_j = j * stride[1];
 
             // Pooling derivative for this region
 

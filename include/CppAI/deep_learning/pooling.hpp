@@ -12,7 +12,7 @@ public:
     Pooling poolingType;
     std::vector<unsigned int> inputShape;
     std::vector<unsigned int> poolingSize;
-    unsigned int stride;
+    std::vector<unsigned int> stride;
     std::vector<unsigned int> outputShape;
 
     Array<float> inputCache;
@@ -35,7 +35,7 @@ public:
         Pooling inPoolingType,
         std::vector<unsigned int> inInputShape,
         std::vector<unsigned int> inPoolingSize,
-        unsigned int inStride
+        std::vector<unsigned int> inStride
     ) :
         poolingType(inPoolingType),
         inputShape(inInputShape),
@@ -43,8 +43,8 @@ public:
         stride(inStride),
         inputCache(inInputShape),
         outputShape({
-            (inputShape[0]-1) / stride + 1,
-            (inputShape[1]-1) / stride + 1,
+            (inputShape[0]-1) / stride[0] + 1,
+            (inputShape[1]-1) / stride[1] + 1,
             inputShape[2]
         }),
         outputCache(outputShape)
