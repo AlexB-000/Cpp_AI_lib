@@ -1,8 +1,8 @@
 #include "CppAI/deep_learning/pooling.hpp"
 
-Array<float> Pool2dLayer::forward(const Array<float>& input){
+Array<float> Pooling2d::forward(const Array<float>& input){
     if (input.shape != inputShape) {
-        throw std::invalid_argument("In Pool2dLayer forward : Input shape does not match the expected shape.");
+        throw std::invalid_argument("In Pooling2d forward : Input shape does not match the expected shape.");
     }
     Array<float> output(outputShape);
     for (uint32_t i=0; i<outputShape[0]; ++i){
@@ -69,9 +69,9 @@ Array<float> Pool2dLayer::forward(const Array<float>& input){
     return output;
 }
 
-std::vector<Array<float>> Pool2dLayer::backward(const Array<float>& prevDeriv){
+std::vector<Array<float>> Pooling2d::backward(const Array<float>& prevDeriv){
     if (prevDeriv.shape != outputShape) {
-        throw std::invalid_argument("In Pool2dLayer backward : Previous derivative shape does not match the expected shape.");
+        throw std::invalid_argument("In Pooling2d backward : Previous derivative shape does not match the expected shape.");
     }
     Array<float> deriv(inputShape);
     for (uint32_t i=0; i<outputShape[0]; ++i){

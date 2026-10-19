@@ -28,7 +28,7 @@ std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t 
     target_net.stackLayer(layer1);
     std::shared_ptr<LeakyReLU> activation1 = std::make_shared<LeakyReLU>(std::vector<uint32_t>{10, 10, 1}, 0.01f);
     target_net.stackLayer(activation1);
-    std::shared_ptr<Pool2dLayer> pooling1 = std::make_shared<Pool2dLayer>(
+    std::shared_ptr<Pooling2d> pooling1 = std::make_shared<Pooling2d>(
         Pooling::Max,
         std::vector<unsigned int>{10, 10, 1},
         std::vector<unsigned int>{2, 2},
@@ -85,7 +85,7 @@ int main(){
     net.stackLayer(layer1);
     std::shared_ptr<LeakyReLU> activation1 = std::make_shared<LeakyReLU>(std::vector<uint32_t>{10, 10, 1}, 0.01f);
     net.stackLayer(activation1);
-    std::shared_ptr<Pool2dLayer> pooling1 = std::make_shared<Pool2dLayer>(
+    std::shared_ptr<Pooling2d> pooling1 = std::make_shared<Pooling2d>(
         Pooling::Max,
         std::vector<unsigned int>{10, 10, 1},
         std::vector<unsigned int>{2, 2},

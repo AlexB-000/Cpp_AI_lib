@@ -7,7 +7,7 @@ enum class Pooling {
     Average
 };
 
-class Pool2dLayer: public Module{
+class Pooling2d: public Module{
 public:
     Pooling poolingType;
     std::vector<unsigned int> inputShape;
@@ -18,9 +18,9 @@ public:
     Array<float> inputCache;
     Array<float> outputCache;
 
-    ~Pool2dLayer() = default;
+    ~Pooling2d() = default;
 
-    Pool2dLayer(const Pool2dLayer& other) :
+    Pooling2d(const Pooling2d& other) :
         poolingType(other.poolingType),
         inputShape(other.inputShape),
         poolingSize(other.poolingSize),
@@ -31,7 +31,7 @@ public:
     {
     }
 
-    Pool2dLayer(
+    Pooling2d(
         Pooling inPoolingType,
         std::vector<unsigned int> inInputShape,
         std::vector<unsigned int> inPoolingSize,
@@ -57,6 +57,6 @@ public:
     std::vector< Array<float> > backward(const Array<float>& prevDeriv) override;
 
     std::shared_ptr<Module> copy() const override {
-        return std::make_shared<Pool2dLayer>(*this);
+        return std::make_shared<Pooling2d>(*this);
     }
 };
