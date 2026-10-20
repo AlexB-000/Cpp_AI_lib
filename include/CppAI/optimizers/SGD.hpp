@@ -5,15 +5,23 @@
 #include "optimizer.hpp"
 #include "../DataLoader.hpp"
 
-class GD : public Optimizer {
+class SGD : public Optimizer {
 protected:
     std::mutex train_thread_mutex;
 
+    float W_decay;
+    float _momentum;
+
     inline void thread_step(Array<float>* param, const Array<float>* grad, const float lr);
 
-    void step(const std::vector<Array<float>>& gradients, const float lr);
+    void step(std::vector<Array<float>>& velocity, std::vector<Array<float>>& gradient, const float lr);
 public:
-    GD(Network* model, Loss* loss) : Optimizer(model, loss) {}
+    SGD(Network* model, Loss* loss, float weight_decay = 0.0f, float momentum = 0.0f)
+        : Optimizer(model, loss),
+          W_decay(weight_decay),
+          _momentum(momentum)
+    {
+    }
 
     void train_oneSample(Network* _model, const Array<float>* input, const Array<float>* target, std::vector<Array<float>>* gradient, float* loss_value);
 

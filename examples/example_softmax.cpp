@@ -86,7 +86,7 @@ int main(){
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
     CrossEntropyLoss loss(2);
-    GD optimizer(&net, &loss);
+    SGD optimizer(&net, &loss);
 
     std::cout << "## Starting training...\n";
 

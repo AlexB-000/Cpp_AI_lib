@@ -88,7 +88,7 @@ int main(){
 
     BCEWithLogitsLoss loss;
     //BCELoss loss;
-    GD optimizer(&net, &loss);
+    SGD optimizer(&net, &loss);
 
     std::cout << "## Starting training...\n";
 

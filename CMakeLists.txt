@@ -19,7 +19,7 @@ PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src/deep_learning/network.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/deep_learning/conv2d.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/deep_learning/pooling.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/optimizers/GD.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/optimizers/SGD.cpp
 )
 target_include_directories(CppAI
 PUBLIC

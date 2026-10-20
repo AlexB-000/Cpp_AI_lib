@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
     MSELoss loss {1};
-    GD optimizer(&net, &loss);
+    SGD optimizer(&net, &loss);
 
     DataLoader train_dataloader (&train_dataset, 100);
     optimizer.train(train_dataloader, 50, 1.0f, 0, true);

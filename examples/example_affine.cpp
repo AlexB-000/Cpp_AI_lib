@@ -1,10 +1,6 @@
 #include <iostream>
 #include <random>
-#include "CppAI/preprocessing/train_test_split.hpp"
-#include "CppAI/deep_learning/network.hpp"
-#include "CppAI/deep_learning/linear.hpp"
-#include "CppAI/optimizers/GD.hpp"
-#include "CppAI/loss/MSE_Loss.hpp"
+#include "CppAI/Cpp_AI.hpp"
 
 std::vector<std::vector<Array<float>>> generate_data(unsigned int size, int32_t seed=-1){
     std::vector<Array<float>> data;
@@ -59,7 +55,7 @@ int main(){
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
     MSELoss loss {1};
-    GD optimizer(&net, &loss);
+    SGD optimizer(&net, &loss);
 
     optimizer.train(X_train, y_train, 10, 100, 0.7, 2);
 

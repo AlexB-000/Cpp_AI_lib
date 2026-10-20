@@ -1,30 +1,35 @@
-#include "CppAI/optimizers/GD.hpp"
+#include "CppAI/optimizers/SGD.hpp"
 
-void GD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
+void SGD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
     (*param) -= (*grad) * lr;
 }
 
-void GD::step(const std::vector<Array<float>>& gradients, const float lr) {
-    
-    // uint32_t thread_count = std::thread::hardware_concurrency() - 1;
-
-    // if (thread_count > model->parameters.size()) {
-    //     thread_count = model->parameters.size();
-    // }
+void SGD::step(std::vector<Array<float>>& velocity, std::vector<Array<float>>& gradient, const float lr) {
+    if (W_decay > 0.0f) {
+        for (size_t i = 0; i < model->parameters.size(); ++i) {
+            gradient[i] += (*model->parameters[i]) * W_decay;
+        }
+    }
+    if (_momentum > 0.0f) {
+        for (size_t i = 0; i < model->parameters.size(); ++i) {
+            velocity[i] = velocity[i] * _momentum + gradient[i];
+            gradient[i] = velocity[i];
+        }
+    }
 
     uint32_t thread_count = model->parameters.size();
 
     std::vector<std::thread> threads;
 
     for (int i = 0; i < model->parameters.size(); ++i) {
-        threads.emplace_back(&GD::thread_step, this, model->parameters[i], &gradients[i], lr);
+        threads.emplace_back(&SGD::thread_step, this, model->parameters[i], &gradient[i], lr);
     }
     for (std::thread& t : threads) {
         t.join();
     }
 }
 
-void GD::train_oneSample(Network* _model, const Array<float>* input, const Array<float>* target,
+void SGD::train_oneSample(Network* _model, const Array<float>* input, const Array<float>* target,
     std::vector<Array<float>>* gradient, float* loss_value) {
     Array<float> output = _model->forward(*input);
     
@@ -44,7 +49,7 @@ void GD::train_oneSample(Network* _model, const Array<float>* input, const Array
     }
 }
 //MARK: train thread
-void GD::train_oneThread(Network _model, const std::vector<Array<float>>* inputs, const std::vector<Array<float>>* targets,
+void SGD::train_oneThread(Network _model, const std::vector<Array<float>>* inputs, const std::vector<Array<float>>* targets,
     std::vector<Array<float>>* gradient, float* loss_value, float grad_coeff,
     const unsigned int thread_idx, const unsigned int data_start_index, const unsigned int sample_count){
     
@@ -70,7 +75,7 @@ void GD::train_oneThread(Network _model, const std::vector<Array<float>>* inputs
     train_thread_mutex.unlock();
 }
 
-void GD::train_oneThread_batch(Network _model, const std::vector<std::vector<Array<float>>>* batch,
+void SGD::train_oneThread_batch(Network _model, const std::vector<std::vector<Array<float>>>* batch,
     std::vector<Array<float>>* gradient, float* loss_value, float grad_coeff,
     const unsigned int thread_idx, const unsigned int start_index, const unsigned int sample_count){
     
@@ -95,9 +100,14 @@ void GD::train_oneThread_batch(Network _model, const std::vector<std::vector<Arr
 }
 
 //MARK: train X, y
-void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
+void SGD::train(const std::vector<Array<float>>& X, const std::vector<Array<float>>& y,
     const unsigned int epochs, unsigned int batch_size, const float lr,
     short display_mode, bool multithreading, bool flat_out) {
+    
+    std::vector<Array<float>> velocity;
+    for (Array<float>* param : model->parameters) {
+        velocity.emplace_back(Array<float>(param->shape, 0.0f));
+    }
 
     std::cout << std::fixed << std::setprecision(5);
     
@@ -149,7 +159,7 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
                 }
                 const unsigned int data_start_index = i + t * samples_per_thread;
                 const unsigned int count = std::min(samples_per_thread, actual_batch_size - t * samples_per_thread);
-                threads.emplace_back(&GD::train_oneThread, this, *model,
+                threads.emplace_back(&SGD::train_oneThread, this, *model,
                     &X, &y, &batch_gradient, &batch_loss, grad_coeff,
                     t, data_start_index, count
                 );
@@ -158,7 +168,7 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
                 t.join();
             }
             
-            step(batch_gradient, lr);
+            step(velocity, batch_gradient, lr);
 
             if (display_mode >= 2 && (i / batch_size) % batch_info_interval == 0) {
                 std::cout << "\tbatch completed " << (i / batch_size) + 1 << "/" << (num_samples / batch_size + 1)
@@ -179,8 +189,13 @@ void GD::train(const std::vector<Array<float>>& X, const std::vector<Array<float
 }
 
 //MARK: train dataset
-void GD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
+void SGD::train(DataLoader& data_loader, const unsigned int epochs, const float lr,
     short display_mode, bool multithreading, bool flat_out) {
+    
+    std::vector<Array<float>> velocity;
+    for (Array<float>* param : model->parameters) {
+        velocity.emplace_back(Array<float>(param->shape, 0.0f));
+    }
 
     std::cout << std::fixed << std::setprecision(5);
     
@@ -235,7 +250,7 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
                 unsigned int start_index = t * samples_per_thread;
                 unsigned int count = std::min(samples_per_thread, batch_size - start_index);
                 
-                threads.emplace_back(&GD::train_oneThread_batch, this, *model,
+                threads.emplace_back(&SGD::train_oneThread_batch, this, *model,
                     &batch, &batch_gradient, &batch_loss, grad_coeff,
                     t, start_index, count
                 );
@@ -244,7 +259,7 @@ void GD::train(DataLoader& data_loader, const unsigned int epochs, const float l
                 t.join();
             }
 
-            step(batch_gradient, lr);
+            step(velocity, batch_gradient, lr);
             
             if (display_mode >= 2 && i % batch_info_interval == 0) {
                 std::cout << "\tbatch completed " << i + 1 << "/" << data_loader.get_batch_quantity()

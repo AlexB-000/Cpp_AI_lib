@@ -123,7 +123,7 @@ int main(){
     std::cout << "## Data generated and splitted. Training size: " << X_train.size() << ", Test size: " << X_test.size() << "\n";
 
     MSELoss loss{5*5};
-    GD optimizer(&net, &loss);
+    SGD optimizer(&net, &loss, 0.0f, 0.9f);
 
     std::cout << "## Starting training...\n";
 

@@ -18,7 +18,7 @@
 #include "activation/sigmoid.hpp"
 #include "activation/softmax.hpp"
 
-#include "optimizers/GD.hpp"
+#include "optimizers/SGD.hpp"
 #include "loss/MSE_Loss.hpp"
 #include "loss/L1Loss.hpp"
 #include "loss/BCE_Loss.hpp"
