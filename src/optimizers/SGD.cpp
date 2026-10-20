@@ -1,28 +1,23 @@
 #include "CppAI/optimizers/SGD.hpp"
 
-void SGD::thread_step(Array<float>* param, const Array<float>* grad, const float lr) {
+void SGD::thread_step(Array<float>* velocity, Array<float>* grad, Array<float>* param, const float lr) {
+    if (W_decay > 0.0f) {
+        *grad += (*param) * W_decay;
+    }
+    if (_momentum > 0.0f) {
+        *velocity = (*velocity) * _momentum + (*grad);
+        *grad = (*velocity);
+    }
     (*param) -= (*grad) * lr;
 }
 
 void SGD::step(std::vector<Array<float>>& velocity, std::vector<Array<float>>& gradient, const float lr) {
-    if (W_decay > 0.0f) {
-        for (size_t i = 0; i < model->parameters.size(); ++i) {
-            gradient[i] += (*model->parameters[i]) * W_decay;
-        }
-    }
-    if (_momentum > 0.0f) {
-        for (size_t i = 0; i < model->parameters.size(); ++i) {
-            velocity[i] = velocity[i] * _momentum + gradient[i];
-            gradient[i] = velocity[i];
-        }
-    }
-
     uint32_t thread_count = model->parameters.size();
 
     std::vector<std::thread> threads;
 
     for (int i = 0; i < model->parameters.size(); ++i) {
-        threads.emplace_back(&SGD::thread_step, this, model->parameters[i], &gradient[i], lr);
+        threads.emplace_back(&SGD::thread_step, this, &velocity[i], &gradient[i], model->parameters[i], lr);
     }
     for (std::thread& t : threads) {
         t.join();

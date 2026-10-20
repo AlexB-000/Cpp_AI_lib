@@ -12,7 +12,7 @@ protected:
     float W_decay;
     float _momentum;
 
-    inline void thread_step(Array<float>* param, const Array<float>* grad, const float lr);
+    inline void thread_step(Array<float>* velocity, Array<float>* grad, Array<float>* param, const float lr);
 
     void step(std::vector<Array<float>>& velocity, std::vector<Array<float>>& gradient, const float lr);
 public:
