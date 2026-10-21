@@ -2,7 +2,7 @@
 
 #include "Arrays/ndarrays.hpp"
 
-#include "preprocessing/train_test_split.hpp"
+#include "preprocessing.hpp"
 #include "evaluation.hpp"
 
 #include "deep_learning/network.hpp"
